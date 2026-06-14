@@ -1,0 +1,11 @@
+{
+  "cleanUrls": false,
+  "directoryListing": false,
+  "rewrites": [
+    { "source": "/produit/:slug", "destination": "/produit/:slug/index.html" },
+    { "source": "/collection/:slug", "destination": "/collection/:slug/index.html" },
+    { "source": "/faq", "destination": "/index/index.html#faq" },
+    { "source": "/promo-bienvenue", "destination": "/promo-bienvenue/index.html" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L&D Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["DM Sans", "system-ui", "sans-serif"] },
+          colors: {
+            cream: { 50: "#FDFAF5", 100: "#FAF5EC" },
+            ink: { 100: "#E7E5E1", 400: "#A8A29E", 700: "#44403C", 900: "#1C1917" },
+            gold: { 500: "#B8924A", 600: "#9F7C3A" }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/theme-studio.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: "DM Sans", system-ui, sans-serif; }
+    #admin-sidebar { transform: translateX(-100%); }
+    #admin-sidebar.sidebar-open { transform: translateX(0); }
+    @media (min-width: 1024px) {
+      #admin-sidebar { transform: translateX(0); }
+      body.admin-sidebar-collapsed #admin-sidebar {
+        transform: translateX(-100%);
+        width: 0;
+        min-width: 0;
+        border-right-width: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      body.admin-sidebar-collapsed #admin-sticky-bar:not(.theme-editor-sticky) {
+        left: 0;
+      }
+    }
+    .sidebar-collapse-btn .icon-expand { display: none; }
+    .sidebar-collapse-btn .icon-collapse { display: block; }
+    body.admin-sidebar-collapsed .sidebar-collapse-btn .icon-expand { display: block; }
+    body.admin-sidebar-collapsed .sidebar-collapse-btn .icon-collapse { display: none; }
+    #drawer-backdrop.drawer-open { opacity: 1; pointer-events: auto; }
+    .admin-input, .admin-input-select {
+      height: 2.5rem;
+      border: 1px solid rgba(231, 229, 225, 0.95);
+      border-radius: 0.5rem;
+      background: #fafaf9;
+      padding: 0 0.75rem;
+      font-size: 0.8125rem;
+      color: #1c1917;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      width: 100%;
+    }
+    .admin-input:focus, .admin-input-select:focus {
+      outline: none;
+      border-color: #d6d3d1;
+      box-shadow: 0 0 0 3px rgba(28, 25, 23, 0.06);
+    }
+    textarea.admin-input { min-height: 7rem; padding: 0.75rem; height: auto; resize: vertical; }
+    .admin-btn-primary {
+      height: 2.5rem;
+      padding: 0 1rem;
+      border-radius: 0.5rem;
+      background: #1c1917;
+      color: #fdfaf5;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background 0.15s ease;
+    }
+    .admin-btn-primary:hover { background: #292524; }
+    .admin-btn-ghost {
+      height: 2.5rem;
+      padding: 0 0.875rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(231, 229, 225, 0.95);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #44403c;
+      background: #fff;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .admin-btn-ghost:hover { background: #fafaf9; border-color: #e7e5e1; }
+    .admin-icon-btn {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(231, 229, 225, 0.95);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: #44403c;
+      transition: background 0.15s ease;
+    }
+    .admin-icon-btn:hover { background: #fafaf9; }
+    .admin-table-wrap {
+      overflow: auto;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(231, 229, 225, 0.75);
+      background: #fff;
+    }
+    .admin-table-wrap table thead { background: rgba(250, 250, 249, 0.9); }
+    .admin-table-wrap th {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #78716c;
+    }
+    .sidebar-nav.sidebar-nav-active {
+      background: #fff;
+      color: #1c1917;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+    }
+    .sidebar-nav.sidebar-nav-active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+      background: #b8924a;
+    }
+    .sidebar-nav { position: relative; }
+    .admin-nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      opacity: 0.45;
+      stroke-width: 1.65;
+    }
+    .sidebar-nav-active .admin-nav-icon { opacity: 0.85; }
+    .nav-badge {
+      min-width: 1.25rem;
+      height: 1.25rem;
+      padding: 0 0.35rem;
+      border-radius: 9999px;
+      background: #1c1917;
+      color: #fdfaf5;
+      font-size: 0.625rem;
+      font-weight: 700;
+      line-height: 1.25rem;
+      text-align: center;
+      margin-left: auto;
+    }
+    .nav-badge.nav-badge-alert { background: #b42318; }
+    #admin-topbar-search:focus { outline: none; border-color: #d6d3d1; box-shadow: 0 0 0 3px rgba(28, 25, 23, 0.06); }
+    .admin-toolbar-icon {
+      width: 15px;
+      height: 15px;
+      opacity: 0.4;
+      flex-shrink: 0;
+    }
+    .admin-section-icon {
+      width: 14px;
+      height: 14px;
+      opacity: 0.38;
+      flex-shrink: 0;
+    }
+    .admin-table-wrap { width: 100%; min-height: min(48vh, 560px); }
+    .admin-table-wrap.admin-table-natural { min-height: min(28vh, 320px); }
+    .admin-table-wrap table { width: 100%; }
+    .admin-fill-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+      width: 100%;
+    }
+    @media (min-width: 1024px) {
+      .admin-fill-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .admin-fill-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .admin-fill-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1280px) {
+      .admin-fill-grid.product-form { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .admin-chart-box {
+      display: flex;
+      flex-direction: column;
+      min-height: clamp(240px, 32vh, 400px);
+      width: 100%;
+    }
+    .admin-chart-box canvas { flex: 1; min-height: 0; }
+    .admin-chart-wide {
+      min-height: clamp(280px, 36vh, 520px);
+    }
+    #admin-content { max-width: 96rem; }
+    .admin-card { border-radius: 0.75rem; border: 1px solid rgba(231, 229, 225, 0.9); background: #fff; }
+    .admin-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+    .admin-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .admin-tab { height: 2rem; padding: 0 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 500; color: #57534e; background: transparent; }
+    .admin-tab:hover { background: rgba(255,255,255,0.7); }
+    .admin-tab-active { background: #fff; color: #1c1917; font-weight: 600; box-shadow: 0 1px 2px rgba(28,25,23,0.06); }
+    .admin-badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .admin-badge-success { background: #ecfdf3; color: #027a48; }
+    .admin-badge-muted { background: #f5f5f4; color: #57534e; }
+    .admin-badge-danger { background: #fef3f2; color: #b42318; }
+    .admin-badge-pending { background: #fffaeb; color: #b54708; }
+    .admin-badge-info { background: #eff6ff; color: #1d4ed8; }
+    .admin-empty-state { text-align: center; padding: 2rem 1rem; }
+    .admin-empty-title { font-size: 0.9375rem; font-weight: 600; color: #1c1917; }
+    .admin-empty-body { font-size: 0.8125rem; color: #78716c; margin-top: 0.35rem; }
+    .admin-skeleton { border-radius: 0.25rem; background: linear-gradient(90deg, #f5f5f4 25%, #fafaf9 37%, #f5f5f4 63%); background-size: 400% 100%; animation: admin-shimmer 1.4s ease infinite; }
+    @keyframes admin-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+    .admin-input.has-error { border-color: #b42318; }
+    .admin-field-error { font-size: 0.6875rem; color: #b42318; margin-top: 0.25rem; }
+    #admin-sticky-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 0.75rem 1rem; padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); background: rgba(253,250,245,0.96); border-top: 1px solid #e7e5e1; backdrop-filter: blur(8px); }
+    @media (min-width: 1024px) {
+      #admin-sticky-bar { left: 15.5rem; transition: left 0.2s ease; }
+      #admin-sidebar { transition: transform 0.2s ease, width 0.2s ease; }
+    }
+    #admin-toasts { position: fixed; bottom: 1rem; right: 1rem; z-index: 200; display: flex; flex-direction: column; gap: 0.5rem; max-width: 20rem; }
+    .admin-toast { padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; background: #1c1917; color: #fdfaf5; opacity: 0; transform: translateY(8px); transition: opacity 0.25s, transform 0.25s; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .admin-toast.is-visible { opacity: 1; transform: translateY(0); }
+    .admin-toast-error { background: #b42318; }
+    .admin-toast-success { background: #1c1917; }
+    #stock-panel { transform: translateX(100%); transition: transform 0.2s ease; }
+    #stock-panel.is-open { transform: translateX(0); }
+    #stock-panel-backdrop { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    #stock-panel-backdrop.is-open { opacity: 1; pointer-events: auto; }
+    .admin-btn-danger { background: #b42318; color: #fff; }
+    .admin-btn-danger:hover { background: #912018; }
+    .admin-btn-primary.is-loading { opacity: 0.65; pointer-events: none; }
+    .product-form-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    @media (min-width: 1024px) { .product-form-grid { grid-template-columns: 1fr 280px; } }
+    #dashboard.theme-studio-active > .flex-1,
+    #dashboard.theme-studio-active #admin-sidebar {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-ink-900 min-h-full antialiased selection:bg-stone-300/40 overflow-x-hidden">
+  <script src="../js/supabase-config.js"></script>
+
+  <div id="auth-layout" class="flex flex-col w-full max-w-[100vw] px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-16 py-4 sm:py-5 pb-8 min-h-screen">
+    <!-- Configuration Supabase (session navigateur) si js/supabase-config.js est vide -->
+    <section id="config-banner" class="hidden mb-6 w-full bg-white border border-stone-200 rounded-xl p-5 sm:p-6">
+      <h2 class="text-[15px] font-semibold text-stone-900 mb-2">Supabase</h2>
+      <p class="text-[13px] text-stone-500 mb-4 leading-relaxed">URL projet + clé <code class="text-stone-800 bg-stone-100 px-1 rounded text-[12px]">anon</code> (API). Utilisateur Auth + entrée <code class="text-stone-800 bg-stone-100 px-1 rounded text-[12px]">admin_users</code>.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div>
+          <label for="cfg-url" class="block text-[11px] font-medium text-stone-500 mb-1.5">URL</label>
+          <input id="cfg-url" type="url" placeholder="https://….supabase.co" class="admin-input">
+        </div>
+        <div>
+          <label for="cfg-key" class="block text-[11px] font-medium text-stone-500 mb-1.5">Clé anon</label>
+          <input id="cfg-key" type="password" autocomplete="off" placeholder="eyJ…" class="admin-input">
+        </div>
+      </div>
+      <button type="button" id="cfg-save" class="admin-btn-primary">Enregistrer · recharger</button>
+    </section>
+    <header id="pre-dash-header" class="mb-8 w-full max-w-md">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="admin-toolbar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <h1 class="text-xl font-semibold tracking-tight text-stone-900">L&amp;D</h1>
+      </div>
+      <p id="auth-state" class="text-[12px] text-stone-500">Session requise.</p>
+    </header>
+
+    <section id="login-card" class="w-full max-w-md bg-white rounded-xl border border-stone-200/80 p-6 sm:p-8">
+      <h2 class="text-[14px] font-semibold text-stone-900 mb-6">Connexion</h2>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label for="email" class="block text-[11px] font-medium text-stone-500 mb-1.5">Email</label>
+          <input id="email" type="email" required class="admin-input" autocomplete="username">
+        </div>
+        <div>
+          <label for="password" class="block text-[11px] font-medium text-stone-500 mb-1.5">Mot de passe</label>
+          <input id="password" type="password" required class="admin-input" autocomplete="current-password">
+        </div>
+        <button type="submit" class="admin-btn-primary w-full">Continuer</button>
+        <p id="login-feedback" class="text-[13px] text-red-600 hidden" role="alert"></p>
+      </form>
+    </section>
+  </div>
+
+  <section id="dashboard" class="hidden min-h-screen w-full flex">
+    <div id="drawer-backdrop" class="fixed inset-0 z-[80] bg-stone-900/25 opacity-0 pointer-events-none transition-opacity duration-200 lg:hidden" aria-hidden="true"></div>
+
+    <aside id="admin-sidebar" class="fixed lg:sticky top-0 left-0 z-[90] h-screen w-[15.5rem] shrink-0 flex flex-col bg-stone-200/50 border-r border-stone-200/90 transition-transform duration-200 ease-out -translate-x-full lg:translate-x-0" aria-label="Navigation principale">
+      <div class="flex items-center gap-2.5 px-4 h-14 border-b border-stone-200/80 shrink-0">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-cream-50 text-[11px] font-bold tracking-tight">L&amp;D</span>
+        <div class="min-w-0">
+          <p class="text-[13px] font-semibold text-stone-900 truncate">Admin</p>
+          <p class="text-[10px] text-stone-500 truncate">Boutique</p>
+          </div>
+        <button type="button" id="sidebar-close" class="lg:hidden ml-auto admin-icon-btn border-0 h-9 w-9 text-stone-400" aria-label="Fermer le menu">
+          <svg class="w-5 h-5 opacity-55" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        <button type="button" id="sidebar-collapse-in-sidebar" class="sidebar-collapse-btn hidden lg:flex ml-auto admin-icon-btn border-0 h-9 w-9 text-stone-500 shrink-0" aria-label="Replier le menu" aria-expanded="true" title="Replier le menu">
+          <svg class="w-5 h-5 opacity-55 icon-collapse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <svg class="w-5 h-5 opacity-55 icon-expand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+      <nav class="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5" id="admin-nav">
+        <button type="button" class="sidebar-nav sidebar-nav-active flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-medium text-stone-600 hover:bg-stone-100/80 transition-colors" data-tab="analytics">
+          <svg class="admin-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Accueil</span>
+        </button>
+        <button type="button" class="sidebar-nav flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-medium text-stone-600 hover:bg-stone-100/80 transition-colors" data-tab="orders">
+          <svg class="admin-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Commandes</span>
+          <span class="nav-badge hidden" data-nav-badge="orders" aria-label="Commandes en attente"></span>
+        </button>
+        <button type="button" class="sidebar-nav flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-medium text-stone-600 hover:bg-stone-100/80 transition-colors" data-tab="products">
+          <svg class="admin-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>Produits</span>
+        </button>
+        <button type="button" class="sidebar-nav flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-medium text-stone-600 hover:bg-stone-100/80 transition-colors" data-tab="stock">
+          <svg class="admin-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+          <span>Stock</span>
+          <span class="nav-badge nav-badge-alert hidden" data-nav-badge="stock" aria-label="Alertes stock"></span>
+        </button>
+        <button type="button" class="sidebar-nav flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-medium text-stone-600 hover:bg-stone-100/80 transition-colors" data-tab="cms">
+          <svg class="admin-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Contenu</span>
+        </button>
+        <button type="button" class="sidebar-nav flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-medium text-stone-600 hover:bg-stone-100/80 transition-colors" data-tab="notes">
+          <svg class="admin-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Ops</span>
+        </button>
+      </nav>
+      <div class="shrink-0 p-3 border-t border-stone-200/80">
+        <a href="../index/index.html" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[12px] font-medium text-stone-600 hover:bg-white/80 hover:text-stone-900 transition-colors group">
+          <svg class="w-4 h-4 opacity-45 group-hover:opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          Voir la boutique
+        </a>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+      <header id="admin-topbar" class="sticky top-0 z-40 shrink-0 h-14 flex items-center gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 bg-stone-100/92 backdrop-blur-md border-b border-stone-200/70">
+        <button type="button" id="sidebar-toggle" class="lg:hidden admin-icon-btn border-stone-200/80 shrink-0" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="admin-sidebar">
+          <svg class="w-[17px] h-[17px] opacity-55" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <button type="button" id="sidebar-collapse" class="sidebar-collapse-btn hidden lg:inline-flex admin-icon-btn border-stone-200/80 shrink-0" aria-label="Replier le menu" aria-expanded="true" title="Replier le menu (plus d'espace)">
+          <svg class="w-[17px] h-[17px] opacity-55 icon-collapse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <svg class="w-[17px] h-[17px] opacity-55 icon-expand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <div class="min-w-0 flex-1">
+          <nav id="toolbar-breadcrumb" class="hidden text-[11px] mb-0.5" aria-label="Fil d'Ariane"></nav>
+          <div class="flex items-baseline gap-2">
+            <h1 class="text-[15px] sm:text-[16px] font-semibold text-stone-900 tracking-tight truncate" id="toolbar-title">Accueil</h1>
+            <p class="hidden sm:block text-[11px] text-stone-400 truncate" id="toolbar-subtitle"></p>
+              </div>
+          </div>
+        <div class="hidden md:flex flex-1 max-w-md mx-2">
+          <label for="admin-topbar-search" class="sr-only">Recherche globale</label>
+          <div class="relative w-full">
+            <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg>
+            <input id="admin-topbar-search" type="search" placeholder="Rechercher… (Ctrl+K)" readonly class="w-full h-9 pl-9 pr-3 rounded-lg border border-stone-200/90 bg-white text-[12px] text-stone-800 placeholder:text-stone-400 cursor-pointer" autocomplete="off">
+          </div>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <a href="../index/index.html" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex admin-btn-ghost h-9 text-[11px] gap-1.5" title="Ouvrir la boutique">
+            <svg class="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            Boutique
+          </a>
+          <span id="toolbar-email" class="hidden xl:inline text-[11px] text-stone-400 max-w-[200px] truncate"></span>
+          <button type="button" id="logout-btn" class="admin-icon-btn border-stone-200/80" aria-label="Déconnexion" title="Déconnexion">
+            <svg class="w-[17px] h-[17px] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="admin-content" class="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col min-h-0 space-y-10 lg:space-y-12">
+        <div id="tab-products" class="tab-panel hidden flex flex-col w-full min-h-0 pb-20">
+          <div id="products-view-list">
+            <div class="admin-page-header">
+              <div>
+                <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide">Catalogue</p>
+                <div class="admin-tabs mt-2">
+                  <button type="button" class="admin-tab admin-tab-active" data-products-filter="all">Tous</button>
+                  <button type="button" class="admin-tab" data-products-filter="active">Actifs</button>
+                  <button type="button" class="admin-tab" data-products-filter="inactive">Inactifs</button>
+                </div>
+              </div>
+              <button type="button" id="products-add-btn" class="admin-btn-primary">Ajouter un produit</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <span class="relative flex-1 min-w-[12rem] max-w-xl">
+                  <input id="products-search" type="search" placeholder="Rechercher…" class="admin-input pl-8 w-full">
+                </span>
+              <span id="products-page-info" class="text-[11px] text-stone-400 tabular-nums"></span>
+              <button type="button" id="products-prev" class="admin-icon-btn w-9 h-9" aria-label="Page précédente">‹</button>
+              <button type="button" id="products-next" class="admin-icon-btn w-9 h-9" aria-label="Page suivante">›</button>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="min-w-full text-[13px]">
+                <thead>
+                  <tr>
+                    <th class="text-left px-4 py-3 w-14"></th>
+                    <th class="text-left px-4 py-3">Produit</th>
+                    <th class="text-left px-4 py-3">Catégorie</th>
+                    <th class="text-left px-4 py-3">Statut</th>
+                    <th class="text-left px-4 py-3">Stock</th>
+                    <th class="text-right px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="products-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="products-view-form" class="hidden pb-4">
+            <form id="product-form" class="product-form-grid" novalidate>
+              <input type="hidden" id="pf-id" value="">
+              <div class="space-y-4">
+                <div class="admin-card p-5">
+                  <h2 id="product-form-title" class="text-[15px] font-semibold text-stone-900 mb-4">Produit</h2>
+                  <div class="space-y-3" data-field-wrap>
+                    <label for="pf-name" class="block text-[11px] font-medium text-stone-500">Nom</label>
+                    <input id="pf-name" required class="admin-input" autocomplete="off">
+        </div>
+                  <div class="space-y-3 mt-3" data-field-wrap>
+                    <label for="pf-description" class="block text-[11px] font-medium text-stone-500">Description</label>
+                    <textarea id="pf-description" class="admin-input min-h-[100px]"></textarea>
+            </div>
+          </div>
+                <div class="admin-card p-5">
+                  <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-3">Médias</p>
+                  <div id="pf-image-dropzone" class="rounded-xl border border-dashed border-stone-300 px-6 py-8 flex flex-col items-center gap-2 cursor-pointer hover:bg-stone-50" tabindex="0" role="button">
+                    <input type="file" id="pf-image-files" class="hidden" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+                    <span class="text-[12px] text-stone-600">Glisser-déposer ou cliquer</span>
+                    <span class="text-[11px] text-stone-400">Max 5 Mo · product-media</span>
+                  </div>
+                  <p id="pf-image-upload-status" class="hidden text-[12px] text-stone-500 mt-2" role="status"></p>
+                  <label for="pf-image-urls" class="block text-[11px] font-medium text-stone-500 mt-3">URLs (une par ligne)</label>
+                  <textarea id="pf-image-urls" class="admin-input min-h-[72px] font-mono text-[12px]"></textarea>
+                </div>
+                <div id="product-variants-block" class="admin-card p-5 hidden">
+                  <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-3">Variantes</p>
+                  <div id="product-variants-list" class="mb-4"></div>
+                  <input type="hidden" id="pf-variant-product-id" value="">
+                  <div id="variant-inline-form" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <input id="pf-variant-sku" placeholder="SKU" class="admin-input">
+                    <input id="pf-variant-price" type="number" min="1" placeholder="Prix (¢)" class="admin-input">
+                    <input id="pf-variant-size" placeholder="Taille" class="admin-input">
+                    <input id="pf-variant-color" placeholder="Couleur" class="admin-input">
+                    <input id="pf-variant-threshold" type="number" min="0" value="3" placeholder="Seuil" class="admin-input">
+                    <button type="button" id="pf-variant-add-btn" class="admin-btn-primary col-span-2 sm:col-span-1">Ajouter</button>
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="admin-card p-5">
+                  <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-3">Statut</p>
+                  <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+                    <input id="pf-active" type="checkbox" checked class="rounded border-stone-300"> Produit actif
+                  </label>
+                </div>
+                <div class="admin-card p-5 space-y-3">
+                  <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide">Organisation</p>
+                  <div data-field-wrap>
+                    <label for="pf-category" class="block text-[11px] font-medium text-stone-500 mb-1">Catégorie</label>
+                    <input id="pf-category" required class="admin-input">
+                  </div>
+                  <div data-field-wrap>
+                    <label for="pf-slug" class="block text-[11px] font-medium text-stone-500 mb-1">Slug URL</label>
+                    <input id="pf-slug" class="admin-input" autocomplete="off">
+                  </div>
+                </div>
+              </div>
+          </form>
+          </div>
+        </div>
+
+        <div id="tab-stock" class="tab-panel hidden flex flex-col gap-6 w-full flex-1 min-h-0">
+          <div class="admin-page-header">
+            <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide">Inventaire</p>
+            <button type="button" id="stock-open-panel" class="admin-btn-primary">Mouvement de stock</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="stock-search" type="search" placeholder="Rechercher…" class="admin-input flex-1 min-w-[12rem] max-w-xl">
+            <span id="stock-page-info" class="text-[11px] text-stone-400 tabular-nums"></span>
+            <button type="button" id="stock-prev" class="admin-icon-btn w-9 h-9">‹</button>
+            <button type="button" id="stock-next" class="admin-icon-btn w-9 h-9">›</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="min-w-full text-[13px]">
+              <thead>
+                <tr>
+                  <th class="text-left px-4 py-3">SKU</th>
+                  <th class="text-left px-4 py-3">Produit</th>
+                  <th class="text-left px-4 py-3">T / C</th>
+                  <th class="text-left px-4 py-3">Qté</th>
+                  <th class="text-left px-4 py-3">Seuil</th>
+                  <th class="text-left px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody id="stock-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-orders" class="tab-panel hidden flex flex-col w-full flex-1 min-h-0 pb-20">
+          <div id="orders-view-list">
+            <div class="admin-page-header">
+              <div class="admin-tabs">
+                <button type="button" class="admin-tab admin-tab-active" data-orders-filter="all">Toutes</button>
+                <button type="button" class="admin-tab" data-orders-filter="pending">En attente</button>
+                <button type="button" class="admin-tab" data-orders-filter="paid">Payées</button>
+              </div>
+            </div>
+            <input id="orders-search" type="search" placeholder="Rechercher réf. ou email…" class="admin-input max-w-xl mb-3 w-full">
+          <div class="admin-table-wrap">
+            <table class="min-w-full text-[13px]">
+              <thead>
+                <tr>
+                  <th class="text-left px-4 py-3">Réf.</th>
+                  <th class="text-left px-4 py-3">Email</th>
+                  <th class="text-left px-4 py-3">Statut</th>
+                  <th class="text-right px-4 py-3">Total</th>
+                  <th class="text-left px-4 py-3">Date</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody"></tbody>
+            </table>
+            </div>
+          </div>
+          <div id="orders-view-detail" class="hidden">
+            <button type="button" id="order-detail-back" class="admin-btn-ghost mb-4 text-[12px]">← Retour aux commandes</button>
+            <div id="order-detail-body"></div>
+            <div class="admin-card p-5 mt-4 max-w-md">
+              <label for="order-status-select" class="block text-[11px] font-medium text-stone-500 mb-1.5">Statut</label>
+              <select id="order-status-select" class="admin-input-select bg-white w-full"></select>
+              <button type="button" id="order-detail-save" class="hidden">save</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-analytics" class="tab-panel flex flex-col gap-8 lg:gap-10 w-full flex-1 min-h-0">
+          <div id="onboarding-card" class="hidden"></div>
+          <div id="analytics-kpi" class="grid grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-10 xl:gap-14 w-full pt-1 border-b border-stone-200/60 pb-8"></div>
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6 w-full">
+            <div class="rounded-xl border border-stone-200/90 bg-white p-4 sm:p-5 admin-chart-box">
+              <p class="flex items-center gap-2 text-[11px] font-medium text-stone-500 mb-3 shrink-0">
+                <svg class="admin-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                Statuts
+              </p>
+              <div class="relative flex-1 min-h-[220px]"><canvas id="chart-status"></canvas></div>
+            </div>
+            <div class="rounded-xl border border-stone-200/90 bg-white p-4 sm:p-5 admin-chart-box">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 shrink-0">
+                <div class="min-w-0 flex items-start gap-2">
+                  <svg class="admin-section-icon mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                  <div>
+                    <p class="text-[11px] font-medium text-stone-500">CA cumulé</p>
+                    <p id="analytics-revenue-hint" class="text-[10px] text-stone-400 mt-0.5 tabular-nums">30 jours</p>
+                  </div>
+                </div>
+                <select id="analytics-revenue-range" class="admin-input-select h-9 min-w-[8rem] py-0 shrink-0 text-[12px]" aria-label="Période du graphique CA">
+                  <option value="30">30 jours</option>
+                  <option value="90">3 mois</option>
+                  <option value="180">6 mois</option>
+                  <option value="270">9 mois</option>
+                  <option value="365">1 an</option>
+                </select>
+              </div>
+              <div class="relative flex-1 min-h-[220px]"><canvas id="chart-revenue"></canvas></div>
+            </div>
+          </div>
+          <div class="rounded-xl border border-stone-200/90 bg-white p-4 sm:p-5 admin-chart-box admin-chart-wide w-full">
+            <p class="flex items-center gap-2 text-[11px] font-medium text-stone-500 mb-3 shrink-0">
+              <svg class="admin-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Top SKU
+            </p>
+            <div class="relative flex-1 min-h-[240px] w-full"><canvas id="chart-top-skus"></canvas></div>
+          </div>
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6 w-full pb-4">
+            <div class="rounded-xl border border-stone-200/90 bg-white p-4 sm:p-5 min-h-[200px] flex flex-col">
+              <p class="flex items-center gap-2 text-[11px] font-medium text-stone-500 mb-3">
+                <svg class="admin-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+                Volumes
+              </p>
+              <ul id="analytics-top" class="text-[13px] space-y-2 flex-1"></ul>
+            </div>
+            <div class="rounded-xl border border-stone-200/90 bg-white p-4 sm:p-5 min-h-[200px] flex flex-col">
+              <p class="flex items-center gap-2 text-[11px] font-medium text-stone-500 mb-3">
+                <svg class="admin-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Stock critique
+              </p>
+              <ul id="analytics-low-stock" class="text-[13px] space-y-2 flex-1"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-cms" class="tab-panel hidden flex flex-col gap-6 w-full flex-1 min-h-0">
+          <div id="cms-classic-view" class="flex flex-col gap-6">
+            <div class="admin-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-[16px] font-semibold text-stone-900">Éditeur boutique</h2>
+                <p class="text-[13px] text-stone-500 mt-1">Personnalisez textes, couleurs et sections avec aperçu en temps réel — publication quand vous êtes prêt.</p>
+              </div>
+              <button type="button" id="cms-open-editor" class="admin-btn-primary shrink-0">Ouvrir l'éditeur visuel</button>
+            </div>
+            <details id="cms-advanced-wrap" class="admin-card">
+              <summary class="px-5 py-4 cursor-pointer text-[13px] font-medium text-stone-800 list-none flex items-center justify-between">
+                Textes avancés (clés CMS)
+                <span class="text-stone-400 text-[11px]">FAQ juridique · pages statiques</span>
+              </summary>
+              <div class="px-5 pb-5 border-t border-stone-100">
+                <form id="cms-form" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 mt-4">
+            <input id="cms-key" required placeholder="Clé" class="admin-input">
+                  <select id="cms-locale" class="admin-input-select"><option value="fr">FR</option><option value="en">EN</option></select>
+                  <label class="flex items-center gap-2 text-[13px]"><input id="cms-published" type="checkbox" checked class="rounded"> Publié</label>
+                  <textarea id="cms-value" required placeholder="Contenu" class="admin-input md:col-span-3 min-h-[72px]"></textarea>
+                  <button type="submit" class="admin-btn-primary md:col-span-3 justify-self-start">Sauvegarder la clé</button>
+          </form>
+          <div class="admin-table-wrap admin-table-natural">
+            <table class="min-w-full text-[13px]">
+                    <thead><tr><th class="text-left px-4 py-3">Clé</th><th class="text-left px-4 py-3">Loc.</th><th class="text-left px-4 py-3">Extrait</th><th class="text-left px-4 py-3">Pub.</th></tr></thead>
+              <tbody id="cms-tbody"></tbody>
+            </table>
+          </div>
+              </div>
+            </details>
+          </div>
+
+        </div>
+
+        <div id="tab-notes" class="tab-panel hidden flex flex-col gap-4 w-full">
+          <h3 class="flex items-center gap-2 text-[11px] font-semibold text-stone-500 uppercase tracking-[0.12em]">
+            <svg class="admin-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Ops
+          </h3>
+          <ul class="space-y-2.5 text-[13px] text-stone-600 leading-relaxed">
+            <li class="pl-3 border-l-2 border-stone-200">Realtime sur <code class="text-stone-800 bg-stone-100 px-1 rounded text-[12px]">inventory</code></li>
+            <li class="pl-3 border-l-2 border-stone-200"><code class="text-stone-800 bg-stone-100 px-1 rounded text-[12px]">commit_stock</code> · Functions uniquement</li>
+            <li class="pl-3 border-l-2 border-stone-200">Soft delete · <code class="text-stone-800 bg-stone-100 px-1 rounded text-[12px]">active=false</code></li>
+            <li class="pl-3 border-l-2 border-stone-200">Alertes email si stock ≤ seuil</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="theme-studio-mount" class="theme-studio" aria-hidden="true">
+      <header class="theme-studio-toolbar" id="theme-studio-toolbar">
+        <div class="theme-studio-toolbar__brand">
+          <button type="button" id="theme-studio-back" class="theme-studio-btn-back">← Contenu</button>
+          <span class="theme-studio-toolbar__title">L&amp;D · Boutique en ligne</span>
+          <span id="theme-draft-badge" class="theme-studio-status theme-studio-status--draft">Brouillon</span>
+          <span id="theme-studio-dirty" class="theme-studio-dirty-hint">Non enregistré</span>
+      </div>
+        <div class="theme-studio-toolbar__center">
+          <select id="theme-editor-page-select" class="theme-studio-select" aria-label="Page">
+            <option value="home">Page d'accueil</option>
+            <option value="catalog">Catalogue</option>
+        </select>
+          <select id="theme-editor-locale" class="theme-studio-select" aria-label="Langue">
+            <option value="fr">FR</option>
+            <option value="en">EN</option>
+          </select>
+      </div>
+        <div class="theme-studio-toolbar__actions">
+          <div class="theme-studio-segmented" role="group" aria-label="Aperçu appareil">
+            <button type="button" id="theme-preview-desktop" class="is-active" data-device="desktop">Desktop</button>
+            <button type="button" id="theme-preview-mobile" data-device="mobile">Mobile</button>
+    </div>
+          <button type="button" id="theme-studio-undo" class="theme-studio-btn-icon" title="Annuler" aria-label="Annuler" disabled>↶</button>
+          <button type="button" id="theme-studio-redo" class="theme-studio-btn-icon" title="Rétablir" aria-label="Rétablir" disabled>↷</button>
+          <div class="theme-studio-menu-wrap">
+            <button type="button" id="theme-studio-menu-btn" class="theme-studio-btn-icon" aria-expanded="false" aria-haspopup="true" title="Plus d'options">⋯</button>
+            <div id="theme-studio-menu" class="theme-studio-menu" role="menu">
+              <button type="button" id="theme-editor-refresh" role="menuitem">Recharger l'aperçu</button>
+              <button type="button" id="theme-studio-link-cms" role="menuitem">Textes avancés (CMS)</button>
+  </div>
+      </div>
+          <button type="button" id="theme-studio-discard" class="theme-studio-btn-ghost">Annuler</button>
+          <button type="button" id="theme-studio-save" class="theme-studio-btn-ghost" disabled>Enregistrer</button>
+          <button type="button" id="theme-editor-publish" class="theme-studio-btn-primary">Publier</button>
+          </div>
+      </header>
+      <div class="theme-studio-body" id="theme-studio-body">
+        <div class="theme-studio-panel-wrap" id="theme-studio-left-wrap">
+          <button type="button" class="theme-studio-collapse-edge theme-studio-collapse-edge--left" id="theme-studio-collapse-left" aria-label="Replier le panneau structure">‹</button>
+          <aside class="theme-studio-panel" id="theme-studio-left">
+            <div class="theme-studio-panel__head">
+              <input type="search" id="theme-section-search" class="theme-studio-search" placeholder="Rechercher une section…" autocomplete="off">
+          </div>
+            <div id="theme-studio-tree-breadcrumb" class="theme-studio-breadcrumb hidden"></div>
+            <nav id="theme-editor-tree" class="theme-studio-tree"></nav>
+          </aside>
+          </div>
+        <main class="theme-studio-canvas" id="theme-studio-canvas">
+          <p class="theme-studio-canvas__label" id="theme-canvas-label">Aperçu · Desktop</p>
+          <div class="theme-studio-canvas__frame-wrap">
+            <div id="theme-editor-preview-wrap" class="theme-studio-canvas__frame">
+              <iframe id="theme-editor-preview" title="Aperçu boutique"></iframe>
+          </div>
+        </div>
+        </main>
+        <div class="theme-studio-panel-wrap theme-studio-panel-wrap--right" id="theme-studio-right-wrap">
+          <button type="button" class="theme-studio-collapse-edge theme-studio-collapse-edge--right" id="theme-studio-collapse-right" aria-label="Replier le panneau réglages">›</button>
+          <aside class="theme-studio-panel" id="theme-studio-right">
+            <div id="theme-editor-props" class="theme-studio-inspector"></div>
+          </aside>
+          </div>
+        </div>
+      <button type="button" class="theme-studio-float-tab theme-studio-float-tab--left" id="theme-studio-expand-left">Structure</button>
+      <button type="button" class="theme-studio-float-tab theme-studio-float-tab--right" id="theme-studio-expand-right">Réglages</button>
+        </div>
+  </section>
+
+
+  <div id="admin-sticky-bar" class="hidden">
+    <div class="max-w-[96rem] mx-auto flex items-center justify-between gap-4 px-4 sm:px-6">
+      <span id="sticky-dirty" class="hidden text-[12px] text-amber-700">Modifications non enregistrées</span>
+      <div class="flex gap-2 ml-auto">
+        <button type="button" id="sticky-cancel" class="admin-btn-ghost">Annuler</button>
+        <button type="button" id="sticky-save" class="admin-btn-primary">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+  <div id="admin-toasts" aria-live="polite"></div>
+  <div id="stock-panel-backdrop" class="fixed inset-0 z-[95] bg-stone-900/30"></div>
+  <aside id="stock-panel" class="fixed top-0 right-0 z-[96] h-full w-[min(24rem,100vw)] bg-white border-l border-stone-200 shadow-lg flex flex-col p-5">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-[15px] font-semibold">Ajuster le stock</h2>
+      <button type="button" id="stock-panel-close" class="admin-icon-btn border-0" aria-label="Fermer">×</button>
+    </div>
+    <form id="stock-form" class="space-y-3 flex-1">
+      <div><label class="text-[11px] text-stone-500">Variante</label><select id="stock-variant" required class="admin-input-select w-full mt-1"></select></div>
+      <div><label class="text-[11px] text-stone-500">Mouvement</label><select id="stock-type" class="admin-input-select w-full mt-1"><option value="in">Entrée</option><option value="out">Sortie</option><option value="adjustment">Ajustement</option></select></div>
+      <div><label class="text-[11px] text-stone-500">Quantité</label><input id="stock-qty" type="number" min="1" required class="admin-input w-full mt-1"></div>
+      <div><label class="text-[11px] text-stone-500">Motif</label><input id="stock-reason" class="admin-input w-full mt-1" placeholder="Réception, inventaire…"></div>
+      <button type="submit" class="admin-btn-primary w-full">Appliquer</button>
+      </form>
+  </aside>
+  <div id="admin-palette" class="hidden fixed inset-0 z-[110] flex items-start justify-center pt-[12vh] px-4" aria-hidden="true">
+    <div id="palette-backdrop" class="absolute inset-0 bg-stone-900/40"></div>
+    <div class="relative w-full max-w-lg bg-white rounded-xl border border-stone-200 shadow-xl overflow-hidden">
+      <input id="palette-input" type="search" placeholder="Produits, commandes, clés CMS…" class="w-full h-12 px-4 border-0 border-b border-stone-100 text-[14px]" autocomplete="off">
+      <div id="palette-results" class="max-h-[50vh] overflow-y-auto"></div>
+    </div>
+  </div>
+  <div id="admin-confirm-dialog" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/40" aria-hidden="true">
+    <div class="bg-white rounded-xl border border-stone-200 p-6 max-w-md w-full shadow-lg">
+      <h3 id="confirm-dialog-title" class="text-[16px] font-semibold mb-2"></h3>
+      <p id="confirm-dialog-body" class="text-[13px] text-stone-600 mb-5"></p>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="confirm-dialog-cancel" class="admin-btn-ghost">Annuler</button>
+        <button type="button" id="confirm-dialog-ok" class="admin-btn-primary">Confirmer</button>
+            </div>
+        </div>
+  </div>
+  <div id="admin-help-dialog" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/40" aria-hidden="true">
+    <div class="bg-white rounded-xl border p-6 max-w-sm w-full text-[13px]">
+      <h3 class="font-semibold mb-3">Raccourcis</h3>
+      <ul class="space-y-1 text-stone-600"><li><kbd>Ctrl+K</kbd> Recherche</li><li><kbd>/</kbd> Recherche</li><li><kbd>?</kbd> Aide</li><li><kbd>Échap</kbd> Fermer</li></ul>
+      <button type="button" id="help-dialog-close" class="admin-btn-primary mt-4 w-full">OK</button>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

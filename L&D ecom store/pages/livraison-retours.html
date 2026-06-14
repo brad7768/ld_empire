@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L&amp;D — Livraison &amp; retours</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: { 50: '#FDFAF5', 100: '#FAF5EC', 200: '#F2EBDD', 300: '#E8DCC4' },
+            ink: { 50: '#F5F5F4', 100: '#E7E5E1', 400: '#A8A29E', 500: '#78716C', 600: '#57534E', 700: '#44403C', 800: '#292524', 900: '#1C1917' },
+            gold: { 400: '#C9A961', 500: '#B8924A', 600: '#9F7C3A', 700: '#7E6028' },
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'serif'],
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { widest: '0.25em', ultra: '0.35em' },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #FDFAF5; color: #1C1917; font-family: 'DM Sans', sans-serif; }
+    .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: -0.02em; }
+    .grain::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.5; mix-blend-mode: multiply;
+    }
+    .link-underline { position: relative; display: inline-block; }
+    .link-underline::after {
+      content: ""; position: absolute; bottom: -2px; left: 0; width: 100%; height: 1px;
+      background-color: currentColor; transform: scaleX(0); transform-origin: right center;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .link-underline:hover::after { transform: scaleX(1); transform-origin: left center; }
+    *:focus-visible { outline: 1px solid #B8924A; outline-offset: 2px; }
+    .legal-prose h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; margin-top: 2rem; margin-bottom: 0.75rem; color: #1C1917; }
+    .legal-prose p, .legal-prose li { font-size: 0.875rem; line-height: 1.65; color: #57534E; }
+    .legal-prose ul { list-style: disc; padding-left: 1.25rem; margin: 0.75rem 0; }
+    .legal-prose li { margin: 0.35rem 0; }
+  </style>
+</head>
+<body class="grain relative z-0">
+  <header class="sticky top-0 z-50 border-b border-ink-100 bg-cream-50/95 backdrop-blur-md">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-12">
+      <a href="../index/index.html" class="serif text-xl tracking-wide font-light text-ink-900 hover:text-gold-700 transition-colors">L&amp;D</a>
+      <div class="flex items-center gap-4">
+        <a href="../index/index.html" data-lang-show="fr" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Boutique</a>
+        <a href="../index/index.html" data-lang-show="en" class="hidden text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Shop</a>
+        <button type="button" id="legal-locale-toggle" onclick="legalToggleLocale()" class="min-h-[44px] min-w-[44px] text-[11px] tracking-widest font-medium text-ink-700 hover:text-gold-700">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="relative z-10 mx-auto max-w-3xl px-6 py-16 lg:py-24">
+    <nav class="mb-10 flex flex-wrap items-center gap-2 text-[10px] tracking-widest uppercase text-ink-500">
+      <a href="../index/index.html" data-lang-show="fr" class="hover:text-ink-900">Accueil</a>
+      <a href="../index/index.html" data-lang-show="en" class="hidden hover:text-ink-900">Home</a>
+      <span>/</span>
+      <span data-lang-show="fr" class="text-ink-900">Livraison &amp; retours</span>
+      <span data-lang-show="en" class="hidden text-ink-900">Shipping &amp; returns</span>
+    </nav>
+
+    <div data-lang-show="fr">
+      <h1 class="serif text-4xl font-light text-ink-900 sm:text-5xl">Livraison &amp; retours</h1>
+      <p class="mt-4 text-xs tracking-widest uppercase text-gold-700">Aligné sur les informations affichées en boutique (prototype)</p>
+      <div class="legal-prose mt-10 space-y-4">
+        <p>Cette page résume la politique affichée sur le site L&amp;D. Ajustez les délais, montants et zones desservies selon vos transporteurs réels et la réglementation consumeriste applicable.</p>
+        <h2>Zones et délais</h2>
+        <p>Livraison proposée vers les adresses que vous configurez (national / international). Délais indicatifs : 48h à 72h ouvrés après expédition pour la zone principale ; délais plus longs pour l’international selon la douane.</p>
+        <h2>Frais de port</h2>
+        <p>Livraison offerte à partir du seuil indiqué sur la boutique (ex. 200&nbsp;$ — à harmoniser avec votre politique commerciale). En dessous du seuil, des frais de contribution aux frais d’envoi peuvent s’appliquer.</p>
+        <h2>Suivi</h2>
+        <p>Un numéro de suivi est communiqué par e-mail dès que la commande est expédiée. Les délais porte-à-porte dependent du transporteur.</p>
+        <h2>Retours</h2>
+        <p>Vous disposez d’un délai pour renvoyer les articles non portés, avec étiquettes et emballage d’origine lorsque c’est possible. Les retours gratuits dans la fenêtre annoncée sur le site (ex. 30 jours) s’appliquent aux commandes éligibles selon votre politique (hors articles personnalisés ou soldes finaux si vous le précisez).</p>
+        <h2>Remboursements</h2>
+        <p>Après réception et contrôle du retour, le remboursement est effectué sur le moyen de paiement initial sous un délai bancaire habituel (souvent 5 à 10 jours ouvrés après traitement).</p>
+        <h2>Échanges</h2>
+        <p>Si vous proposez des échanges, décrivez ici la marche à suivre (taille, couleur) et les éventuels frais de réexpédition.</p>
+      </div>
+    </div>
+
+    <div data-lang-show="en" class="hidden">
+      <h1 class="serif text-4xl font-light text-ink-900 sm:text-5xl">Shipping &amp; returns</h1>
+      <p class="mt-4 text-xs tracking-widest uppercase text-gold-700">Consistent with on-store messaging (prototype)</p>
+      <div class="legal-prose mt-10 space-y-4">
+        <p>This page summarizes the policy shown on the L&amp;D site. Update timelines, fees, and regions to match your carriers and applicable consumer law.</p>
+        <h2>Regions &amp; timing</h2>
+        <p>Delivery to addresses you configure (domestic / international). Indicative timelines: 48–72 business hours after dispatch domestically; longer for international shipments including customs.</p>
+        <h2>Shipping fees</h2>
+        <p>Complimentary shipping above the threshold shown on the store (e.g. $200 — align with your pricing). Below the threshold, a shipping contribution may apply.</p>
+        <h2>Tracking</h2>
+        <p>A tracking number is emailed when the order ships. Final delivery times depend on the carrier.</p>
+        <h2>Returns</h2>
+        <p>Unused items may be returned within the window stated on the site (e.g. 30 days), with tags and original packaging where possible. Free returns apply to eligible orders per your policy (exclude custom or final-sale items if you state so).</p>
+        <h2>Refunds</h2>
+        <p>After the return is received and inspected, refunds are issued to the original payment method within typical banking timelines (often 5–10 business days after processing).</p>
+        <h2>Exchanges</h2>
+        <p>If you offer exchanges, describe the process (size, color) and any reshipping fees.</p>
+      </div>
+    </div>
+
+    <p class="relative z-10 mt-16 border-t border-ink-100 pt-8 text-xs text-ink-500" data-lang-show="fr">Document de démonstration — à valider avec vos opérations logistiques et votre conseil juridique.</p>
+    <p class="relative z-10 mt-16 hidden border-t border-ink-100 pt-8 text-xs text-ink-500" data-lang-show="en">Demo copy — validate with your logistics and legal counsel.</p>
+  </main>
+
+  <footer class="relative z-10 border-t border-ink-100 bg-cream-50 py-16">
+    <div class="mx-auto max-w-[1600px] px-6 lg:px-12">
+      <div class="flex flex-col items-center gap-8 text-center">
+        <span class="serif text-2xl tracking-wide font-light">L&amp;D</span>
+        <nav class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          <a href="politique-confidentialite.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Politique de confidentialité</a>
+          <a href="conditions-utilisation.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Conditions d'utilisation</a>
+          <a href="livraison-retours.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Livraison &amp; retours</a>
+          <a href="contact.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Contact</a>
+        </nav>
+        <p class="text-[10px] tracking-widest uppercase text-ink-600">© 2026 L&amp;D</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/legal-page.js"></script>
+</body>
+</html>

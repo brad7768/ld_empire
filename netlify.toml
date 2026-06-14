@@ -1,0 +1,6 @@
+# Repo root — points Netlify at the storefront subfolder.
+# The app’s build config (command, redirects, publish) lives in:
+#   L&D ecom store/netlify.toml
+
+[build]
+  base = "L&D ecom store"

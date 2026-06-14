@@ -1,0 +1,48 @@
+GUIDE — Ajouter 300+ articles (produits + variantes + photos) pour L&D
+=====================================================================
+
+1) MODÈLE DE DONNÉES (Supabase)
+   - Table `products` : une ligne par « fiche produit » (nom, slug unique, catégorie, description, image_urls JSON).
+   - Table `product_variants` : une ligne par combinaison vendable (SKU unique, taille, couleur, prix en CENTIMES).
+   - Table `inventory` : stock par variante (souvent créé à 0 puis mis à jour ou importé).
+
+2) PHOTOS
+   - Hébergez les fichiers (recommandé : bucket Supabase Storage en public, ou CDN / Shopify export / Cloudinary).
+   - Dans `products.image_urls`, mettez un tableau JSON d’URLs HTTPS (ordre = ordre d’affichage souhaité).
+   - Exemple SQL : image_urls = '["https://votredomaine.com/img/robe-01.jpg","https://.../robe-02.jpg"]'::jsonb
+
+3) IMPORT MASSIF (300 lignes et plus)
+   A) Préparez un tableur (Excel / Google Sheets) avec au minimum :
+      - product_slug, product_name, category, description (optionnel)
+      - image_url_1, image_url_2, … (ou une colonne URLs séparées par | )
+      - sku, price_cents (ou price_dollars que vous convertirez × 100)
+      - size, color
+      - stock_initial (pour remplir inventory après coup)
+
+   B) Export CSV UTF-8.
+
+   C) Import dans Supabase :
+      - Option simple : SQL Editor — scripts INSERT générés depuis le CSV (outil « CSV to SQL » en ligne ou script Python maison).
+      - Option avancée : pgloader / COPY depuis une table staging — pour très gros volumes.
+
+   D) Ordre conseillé :
+      1. INSERT batch dans `products` (sans variantes).
+      2. INSERT batch dans `product_variants` (product_id = UUID résolu par slug via sous-requête ou table temporaire).
+      3. INSERT dans `inventory` (variant_id, on_hand).
+
+   Exemple esprit (à adapter avec vos slugs / UUID) :
+      insert into product_variants (product_id, sku, price_cents, size, color)
+      select id, 'ROBE-BIAIS-BLK-36', 154000, 'FR 36', 'Noir' from products where slug = 'robe-biais';
+
+4) ADMIN WEB (prototype)
+   - Le formulaire « Nouveau produit » permet aussi de coller des URLs d’images (une par ligne).
+   - Pour 300 références, l’admin à la main reste long : préférez CSV + SQL ou script.
+
+5) BOUTIQUE (index/index.html)
+   - Aujourd’hui le catalogue visible reste le tableau JS local `products`.
+   - Brancher la boutique sur Supabase = étape suivante : charger produits/variantes/stock via API au lieu du tableau statique.
+   - Tant que ce n’est pas fait, les commandes enregistrent quand même les lignes avec SKU « LOCAL-… » construit depuis le panier démo.
+
+6) COMMANDES
+   - Après migration `004_product_images_and_anon_order_insert.sql`, le checkout enregistre `orders` + `order_items` avec la clé anon.
+   - Statut initial : `pending` (pas de paiement réel dans ce prototype).

@@ -1,0 +1,44 @@
+# Site statique — racine du dépôt = dossier publié.
+# Dans Netlify : Site settings → Environment variables (optionnel)
+#   SUPABASE_URL       → URL du projet (Settings → API)
+#   SUPABASE_ANON_KEY  → clé anon publique
+# Si ces variables sont définies, le build régénère js/supabase-config.js.
+# La page d'accueil est gérée par /index.html (racine).
+#
+# ── Stripe Checkout ──────────────────────────────────────────────────────
+# Secrets Supabase (Fonctions Edge → Secrets), en plus de STRIPE_SECRET_KEY :
+#   STRIPE_WEBHOOK_SECRET — Stripe Dashboard → Webhooks → signing secret (whsec…)
+#   SITE_URL — URL HTTPS du site Netlify sans slash final, ex : https://ld-store.netlify.app
+#   Utilisée pour canonical, Open Graph, sitemap.xml et robots.txt (générés au build).
+# Déployer : supabase functions deploy create-checkout-session
+#           supabase functions deploy stripe-webhook
+# Stripe Webhook endpoint : …/functions/v1/stripe-webhook — événement checkout.session.completed
+
+[build]
+  publish = "."
+  command = "node scripts/netlify-build.js"
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin/"
+  status = 301
+
+[[redirects]]
+  from = "/produit/:slug"
+  to = "/produit/:slug/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/collection/:slug"
+  to = "/collection/:slug/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/faq"
+  to = "/index/index.html#faq"
+  status = 301
+
+[[redirects]]
+  from = "/promo-bienvenue"
+  to = "/promo-bienvenue/index.html"
+  status = 200

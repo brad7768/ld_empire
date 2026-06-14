@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+
+# Local env / secrets (never commit)
+.env
+.env.local
+.env.*
+
+# Dependencies
+node_modules/
+
+# Client Supabase config — generated at Netlify build from env vars
+L&D ecom store/js/supabase-config.js
+
+# Accidental local asset dumps (not part of the site)
+L&D ecom store/Telegram Desktop/

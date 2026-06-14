@@ -1,0 +1,13 @@
+{
+  "name": "ld-ecom-store",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/netlify-build.js",
+    "dev": "node scripts/netlify-build.js && node node_modules/serve/build/main.js -p 8081 .",
+    "seed:catalog": "node scripts/seed-supabase-catalog.js"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "serve": "^14.2.4"
+  }
+}

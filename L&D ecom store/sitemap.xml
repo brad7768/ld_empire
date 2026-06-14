@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+
+    <loc>https://ld-store.netlify.app/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>1</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/index/index.html</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/promo-bienvenue/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/feeds/google-shopping.xml</loc>
+
+    <changefreq>daily</changefreq>
+
+    <priority>0.2</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/pages/contact.html</loc>
+
+    <changefreq>monthly</changefreq>
+
+    <priority>0.6</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/pages/livraison-retours.html</loc>
+
+    <changefreq>monthly</changefreq>
+
+    <priority>0.6</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/pages/conditions-utilisation.html</loc>
+
+    <changefreq>yearly</changefreq>
+
+    <priority>0.3</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/pages/politique-confidentialite.html</loc>
+
+    <changefreq>yearly</changefreq>
+
+    <priority>0.3</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/manteau-laine/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/mule-architecturale/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/sac-box-espresso/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/blouse-soie/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/jupe-asymetrique/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/sneaker-studio/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/manchette-or/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/blazer-lin/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/robe-biais/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/parfum-nuit-collection-privee/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/parfum-invictus-collection-privee/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/parfum-intense-peach/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/parfum-fabulous-life/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/parfum-sexy-vanilla-fragrance-world/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/parfum-aqua-intense-collection-privee/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/mule-bijou-stephan-paris/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/nouveautes-signature-1/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/nouveautes-signature-2/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/produit/nouveautes-signature-3/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.9</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/pret-a-porter/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/chaussures/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/maroquinerie/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/accessoires/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/nouveautes/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/derniere-chance/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+  <url>
+
+    <loc>https://ld-store.netlify.app/collection/parfums/</loc>
+
+    <changefreq>weekly</changefreq>
+
+    <priority>0.8</priority>
+
+  </url>
+
+</urlset>
+

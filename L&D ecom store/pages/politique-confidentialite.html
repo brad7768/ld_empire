@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L&amp;D — Politique de confidentialité</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: { 50: '#FDFAF5', 100: '#FAF5EC', 200: '#F2EBDD', 300: '#E8DCC4' },
+            ink: { 50: '#F5F5F4', 100: '#E7E5E1', 400: '#A8A29E', 500: '#78716C', 600: '#57534E', 700: '#44403C', 800: '#292524', 900: '#1C1917' },
+            gold: { 400: '#C9A961', 500: '#B8924A', 600: '#9F7C3A', 700: '#7E6028' },
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'serif'],
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { widest: '0.25em', ultra: '0.35em' },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #FDFAF5; color: #1C1917; font-family: 'DM Sans', sans-serif; }
+    .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: -0.02em; }
+    .grain::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.5; mix-blend-mode: multiply;
+    }
+    .link-underline { position: relative; display: inline-block; }
+    .link-underline::after {
+      content: ""; position: absolute; bottom: -2px; left: 0; width: 100%; height: 1px;
+      background-color: currentColor; transform: scaleX(0); transform-origin: right center;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .link-underline:hover::after { transform: scaleX(1); transform-origin: left center; }
+    *:focus-visible { outline: 1px solid #B8924A; outline-offset: 2px; }
+    .legal-prose h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; margin-top: 2rem; margin-bottom: 0.75rem; color: #1C1917; }
+    .legal-prose p, .legal-prose li { font-size: 0.875rem; line-height: 1.65; color: #57534E; }
+    .legal-prose ul { list-style: disc; padding-left: 1.25rem; margin: 0.75rem 0; }
+    .legal-prose li { margin: 0.35rem 0; }
+  </style>
+</head>
+<body class="grain relative z-0">
+  <header class="sticky top-0 z-50 border-b border-ink-100 bg-cream-50/95 backdrop-blur-md">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-12">
+      <a href="../index/index.html" class="serif text-xl tracking-wide font-light text-ink-900 hover:text-gold-700 transition-colors">L&amp;D</a>
+      <div class="flex items-center gap-4">
+        <a href="../index/index.html" data-lang-show="fr" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Boutique</a>
+        <a href="../index/index.html" data-lang-show="en" class="hidden text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Shop</a>
+        <button type="button" id="legal-locale-toggle" onclick="legalToggleLocale()" class="min-h-[44px] min-w-[44px] text-[11px] tracking-widest font-medium text-ink-700 hover:text-gold-700">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="relative z-10 mx-auto max-w-3xl px-6 py-16 lg:py-24">
+    <nav class="mb-10 flex flex-wrap items-center gap-2 text-[10px] tracking-widest uppercase text-ink-500">
+      <a href="../index/index.html" data-lang-show="fr" class="hover:text-ink-900">Accueil</a>
+      <a href="../index/index.html" data-lang-show="en" class="hidden hover:text-ink-900">Home</a>
+      <span>/</span>
+      <span data-lang-show="fr" class="text-ink-900">Politique de confidentialité</span>
+      <span data-lang-show="en" class="hidden text-ink-900">Privacy policy</span>
+    </nav>
+
+    <div data-lang-show="fr">
+      <h1 class="serif text-4xl font-light text-ink-900 sm:text-5xl">Politique de confidentialité</h1>
+      <p class="mt-4 text-xs tracking-widest uppercase text-gold-700">Dernière mise à jour · avril 2026</p>
+      <div class="legal-prose mt-10 space-y-4">
+        <p>La présente politique décrit comment L&amp;D (« nous ») traite les informations personnelles lorsque vous utilisez notre site boutique (prototype). Elle doit être adaptée à votre situation réelle et validée juridiquement avant mise en production.</p>
+        <h2>Données collectées</h2>
+        <p>Nous pouvons collecter : identité et coordonnées (nom, adresse e-mail), données de commande et de livraison, données de navigation et d’appareil (cookies techniques ou de mesure d’audience selon vos choix), ainsi que le contenu que vous nous transmettez via les formulaires.</p>
+        <h2>Finalités</h2>
+        <ul>
+          <li>traitement et suivi des commandes ;</li>
+          <li>service client et réponses à vos demandes ;</li>
+          <li>amélioration du site et sécurité ;</li>
+          <li>communications marketing uniquement avec votre consentement préalable.</li>
+        </ul>
+        <h2>Base légale</h2>
+        <p>Le traitement repose sur l’exécution du contrat, l’intérêt légitime (sécurité, amélioration du service) ou le consentement lorsque la loi l’exige (par exemple pour certaines communications).</p>
+        <h2>Conservation</h2>
+        <p>Les données sont conservées pendant la durée nécessaire aux finalités ci-dessus, puis archivées ou supprimées selon les obligations légales et comptables applicables dans votre juridiction.</p>
+        <h2>Destinataires</h2>
+        <p>Les données peuvent être communiquées à des prestataires de confiance (hébergement, paiement, transport) dans la stricte mesure nécessaire à la prestation du service et sous contrats conformes au RGPD ou équivalent.</p>
+        <h2>Vos droits</h2>
+        <p>Selon le droit applicable, vous pouvez demander l’accès, la rectification, l’effacement, la limitation du traitement, la portabilité ou vous opposer à certains traitements. Pour exercer vos droits, contactez-nous via la page Contact. Vous pouvez également introduire une réclamation auprès de l’autorité de protection des données compétente.</p>
+        <h2>Cookies</h2>
+        <p>Le site peut utiliser des cookies strictement nécessaires au fonctionnement et, avec votre accord, des cookies de mesure. Un bandeau de consentement devra être configuré en production.</p>
+      </div>
+    </div>
+
+    <div data-lang-show="en" class="hidden">
+      <h1 class="serif text-4xl font-light text-ink-900 sm:text-5xl">Privacy policy</h1>
+      <p class="mt-4 text-xs tracking-widest uppercase text-gold-700">Last updated · April 2026</p>
+      <div class="legal-prose mt-10 space-y-4">
+        <p>This policy describes how L&amp;D (“we”) processes personal information when you use our boutique website (prototype). It must be adapted to your real operations and reviewed by legal counsel before launch.</p>
+        <h2>Data we collect</h2>
+        <p>We may collect identity and contact details (name, email), order and shipping information, browsing and device data (technical or analytics cookies depending on your choices), and information you send us via forms.</p>
+        <h2>Purposes</h2>
+        <ul>
+          <li>processing and fulfilling orders;</li>
+          <li>customer support;</li>
+          <li>site improvement and security;</li>
+          <li>marketing communications only with prior consent where required.</li>
+        </ul>
+        <h2>Legal bases</h2>
+        <p>Processing relies on contract performance, legitimate interests (security, service improvement), or consent where applicable.</p>
+        <h2>Retention</h2>
+        <p>Data is kept only as long as needed for these purposes, then archived or deleted according to applicable legal and accounting rules.</p>
+        <h2>Recipients</h2>
+        <p>Data may be shared with trusted processors (hosting, payments, carriers) strictly as needed, under appropriate agreements.</p>
+        <h2>Your rights</h2>
+        <p>Depending on applicable law, you may request access, correction, deletion, restriction, portability, or object to certain processing. Use our Contact page to reach us. You may also lodge a complaint with your supervisory authority.</p>
+        <h2>Cookies</h2>
+        <p>The site may use strictly necessary cookies and, with consent, analytics cookies. A consent banner should be implemented for production.</p>
+      </div>
+    </div>
+
+    <p class="relative z-10 mt-16 border-t border-ink-100 pt-8 text-xs text-ink-500" data-lang-show="fr">Document de démonstration — à personnaliser avec vos mentions légales et votre accompagnement juridique.</p>
+    <p class="relative z-10 mt-16 hidden border-t border-ink-100 pt-8 text-xs text-ink-500" data-lang-show="en">Demo copy — customize with your legal notices and professional advice.</p>
+  </main>
+
+  <footer class="relative z-10 border-t border-ink-100 bg-cream-50 py-16">
+    <div class="mx-auto max-w-[1600px] px-6 lg:px-12">
+      <div class="flex flex-col items-center gap-8 text-center">
+        <span class="serif text-2xl tracking-wide font-light">L&amp;D</span>
+        <nav class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          <a href="politique-confidentialite.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Politique de confidentialité</a>
+          <a href="conditions-utilisation.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Conditions d'utilisation</a>
+          <a href="livraison-retours.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Livraison &amp; retours</a>
+          <a href="contact.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Contact</a>
+        </nav>
+        <p class="text-[10px] tracking-widest uppercase text-ink-600">© 2026 L&amp;D</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/legal-page.js"></script>
+</body>
+</html>

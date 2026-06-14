@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L&amp;D — Contact</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: { 50: '#FDFAF5', 100: '#FAF5EC', 200: '#F2EBDD', 300: '#E8DCC4' },
+            ink: { 50: '#F5F5F4', 100: '#E7E5E1', 400: '#A8A29E', 500: '#78716C', 600: '#57534E', 700: '#44403C', 800: '#292524', 900: '#1C1917' },
+            gold: { 400: '#C9A961', 500: '#B8924A', 600: '#9F7C3A', 700: '#7E6028' },
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'serif'],
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { widest: '0.25em', ultra: '0.35em' },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #FDFAF5; color: #1C1917; font-family: 'DM Sans', sans-serif; }
+    .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: -0.02em; }
+    .grain::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.5; mix-blend-mode: multiply;
+    }
+    .link-underline { position: relative; display: inline-block; }
+    .link-underline::after {
+      content: ""; position: absolute; bottom: -2px; left: 0; width: 100%; height: 1px;
+      background-color: currentColor; transform: scaleX(0); transform-origin: right center;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .link-underline:hover::after { transform: scaleX(1); transform-origin: left center; }
+    *:focus-visible { outline: 1px solid #B8924A; outline-offset: 2px; }
+    .form-input {
+      width: 100%; background: transparent; border: 1px solid #D6D3D1; min-height: 44px;
+      padding: 10px 12px; font-size: 14px; transition: border-color .2s, box-shadow .2s;
+    }
+    .form-input:focus { outline: none; border-color: #1C1917; box-shadow: 0 0 0 3px rgba(184, 146, 74, 0.28); }
+  </style>
+</head>
+<body class="grain relative z-0">
+  <header class="sticky top-0 z-50 border-b border-ink-100 bg-cream-50/95 backdrop-blur-md">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-12">
+      <a href="../index/index.html" class="serif text-xl tracking-wide font-light text-ink-900 hover:text-gold-700 transition-colors">L&amp;D</a>
+      <div class="flex items-center gap-4">
+        <a href="../index/index.html" data-lang-show="fr" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Boutique</a>
+        <a href="../index/index.html" data-lang-show="en" class="hidden text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Shop</a>
+        <button type="button" id="legal-locale-toggle" onclick="legalToggleLocale()" class="min-h-[44px] min-w-[44px] text-[11px] tracking-widest font-medium text-ink-700 hover:text-gold-700">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="relative z-10 mx-auto max-w-3xl px-6 py-16 lg:py-24">
+    <nav class="mb-10 flex flex-wrap items-center gap-2 text-[10px] tracking-widest uppercase text-ink-500">
+      <a href="../index/index.html" data-lang-show="fr" class="hover:text-ink-900">Accueil</a>
+      <a href="../index/index.html" data-lang-show="en" class="hidden hover:text-ink-900">Home</a>
+      <span>/</span>
+      <span data-lang-show="fr" class="text-ink-900">Contact</span>
+      <span data-lang-show="en" class="hidden text-ink-900">Contact</span>
+    </nav>
+
+    <div data-lang-show="fr">
+      <h1 class="serif text-4xl font-light text-ink-900 sm:text-5xl">Contact</h1>
+      <p class="mt-6 text-sm leading-relaxed text-ink-600">Une question sur une commande, une taille ou une collaboration ? Écrivez-nous — nous répondons en général sous 24 à 48&nbsp;h ouvrées.</p>
+      <div class="mt-10 space-y-3 text-sm text-ink-600">
+        <p><span class="text-[11px] tracking-widest uppercase text-gold-700">E-mail</span><br>
+          <a href="mailto:concierge@ld-mode.com" class="link-underline text-ink-900 hover:text-gold-700">concierge@ld-mode.com</a>
+          <span class="block text-xs text-ink-500 mt-1">Remplacez par votre adresse réelle avant lancement.</span>
+        </p>
+        <p><span class="text-[11px] tracking-widest uppercase text-gold-700">Service client</span><br>Lundi au vendredi · 9h – 18h (heure de Montréal)</p>
+      </div>
+
+      <form id="contact-form-fr" class="mt-12 space-y-6 border border-ink-100 bg-cream-50/80 p-6 lg:p-8 floating-panel" style="box-shadow: 0 10px 30px rgba(28, 25, 23, 0.08); border-radius: 10px;">
+        <h2 class="serif text-xl text-ink-900">Envoyer un message</h2>
+        <div>
+          <label for="name-fr" class="block text-[11px] tracking-widest uppercase text-ink-600 mb-2">Nom</label>
+          <input id="name-fr" name="name" type="text" autocomplete="name" required class="form-input">
+        </div>
+        <div>
+          <label for="email-fr" class="block text-[11px] tracking-widest uppercase text-ink-600 mb-2">E-mail</label>
+          <input id="email-fr" name="email" type="email" autocomplete="email" required class="form-input">
+        </div>
+        <div>
+          <label for="msg-fr" class="block text-[11px] tracking-widest uppercase text-ink-600 mb-2">Message</label>
+          <textarea id="msg-fr" name="message" rows="5" required class="form-input min-h-[120px] resize-y"></textarea>
+        </div>
+        <p id="contact-error-fr" class="hidden text-sm text-red-800" role="alert"></p>
+        <p id="contact-success-fr" class="hidden text-sm text-ink-700" role="status"></p>
+        <button type="submit" class="w-full bg-ink-900 text-cream-50 py-3 text-[11px] tracking-widest uppercase hover:bg-ink-800 transition-colors sm:w-auto sm:px-10">Envoyer</button>
+      </form>
+    </div>
+
+    <div data-lang-show="en" class="hidden">
+      <h1 class="serif text-4xl font-light text-ink-900 sm:text-5xl">Contact</h1>
+      <p class="mt-6 text-sm leading-relaxed text-ink-600">Questions about an order, sizing, or a partnership? We usually reply within 24–48 business hours.</p>
+      <div class="mt-10 space-y-3 text-sm text-ink-600">
+        <p><span class="text-[11px] tracking-widest uppercase text-gold-700">Email</span><br>
+          <a href="mailto:concierge@ld-mode.com" class="link-underline text-ink-900 hover:text-gold-700">concierge@ld-mode.com</a>
+          <span class="block text-xs text-ink-500 mt-1">Replace with your real address before launch.</span>
+        </p>
+        <p><span class="text-[11px] tracking-widest uppercase text-gold-700">Customer care</span><br>Monday to Friday · 9am – 6pm (Montreal time)</p>
+      </div>
+
+      <form id="contact-form-en" class="mt-12 space-y-6 border border-ink-100 bg-cream-50/80 p-6 lg:p-8 floating-panel" style="box-shadow: 0 10px 30px rgba(28, 25, 23, 0.08); border-radius: 10px;">
+        <h2 class="serif text-xl text-ink-900">Send a message</h2>
+        <div>
+          <label for="name-en" class="block text-[11px] tracking-widest uppercase text-ink-600 mb-2">Name</label>
+          <input id="name-en" name="name" type="text" autocomplete="name" required class="form-input">
+        </div>
+        <div>
+          <label for="email-en" class="block text-[11px] tracking-widest uppercase text-ink-600 mb-2">Email</label>
+          <input id="email-en" name="email" type="email" autocomplete="email" required class="form-input">
+        </div>
+        <div>
+          <label for="msg-en" class="block text-[11px] tracking-widest uppercase text-ink-600 mb-2">Message</label>
+          <textarea id="msg-en" name="message" rows="5" required class="form-input min-h-[120px] resize-y"></textarea>
+        </div>
+        <p id="contact-error-en" class="hidden text-sm text-red-800" role="alert"></p>
+        <p id="contact-success-en" class="hidden text-sm text-ink-700" role="status"></p>
+        <button type="submit" class="w-full bg-ink-900 text-cream-50 py-3 text-[11px] tracking-widest uppercase hover:bg-ink-800 transition-colors sm:w-auto sm:px-10">Send</button>
+      </form>
+    </div>
+
+    <p class="relative z-10 mt-16 border-t border-ink-100 pt-8 text-xs text-ink-500" data-lang-show="fr">Ce formulaire ouvre votre messagerie avec le message prérempli — pour la production, branchez un envoi serveur ou un outil CRM.</p>
+    <p class="relative z-10 mt-16 hidden border-t border-ink-100 pt-8 text-xs text-ink-500" data-lang-show="en">This form opens your email client with a pre-filled message — for production, connect a server endpoint or CRM.</p>
+  </main>
+
+  <footer class="relative z-10 border-t border-ink-100 bg-cream-50 py-16">
+    <div class="mx-auto max-w-[1600px] px-6 lg:px-12">
+      <div class="flex flex-col items-center gap-8 text-center">
+        <span class="serif text-2xl tracking-wide font-light">L&amp;D</span>
+        <nav class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          <a href="politique-confidentialite.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Politique de confidentialité</a>
+          <a href="conditions-utilisation.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Conditions d'utilisation</a>
+          <a href="livraison-retours.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Livraison &amp; retours</a>
+          <a href="contact.html" class="text-[11px] tracking-widest uppercase text-ink-600 link-underline hover:text-ink-900">Contact</a>
+        </nav>
+        <p class="text-[10px] tracking-widest uppercase text-ink-600">© 2026 L&amp;D</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/legal-page.js"></script>
+  <script>
+    (function () {
+      const mailTo = 'concierge@ld-mode.com';
+      function wire(formId, errId, okId, okMsg) {
+        var form = document.getElementById(formId);
+        if (!form) return;
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var err = document.getElementById(errId);
+          var ok = document.getElementById(okId);
+          err.classList.add('hidden');
+          ok.classList.add('hidden');
+          var name = form.querySelector('[name="name"]').value.trim();
+          var email = form.querySelector('[name="email"]').value.trim();
+          var message = form.querySelector('[name="message"]').value.trim();
+          if (!name || !email || !message) {
+            err.textContent = formId.endsWith('fr') ? 'Veuillez remplir tous les champs.' : 'Please fill in all fields.';
+            err.classList.remove('hidden');
+            return;
+          }
+          var body = encodeURIComponent(message + '\n\n— ' + name + '\n' + email);
+          var subject = encodeURIComponent(formId.endsWith('fr') ? 'Message depuis ld-mode.com' : 'Message from ld-mode.com');
+          window.location.href = 'mailto:' + mailTo + '?subject=' + subject + '&body=' + body;
+          ok.textContent = okMsg;
+          ok.classList.remove('hidden');
+        });
+      }
+      wire('contact-form-fr', 'contact-error-fr', 'contact-success-fr', 'Si votre messagerie ne s’ouvre pas, écrivez-nous directement à concierge@ld-mode.com.');
+      wire('contact-form-en', 'contact-error-en', 'contact-success-en', 'If your mail client did not open, email us at concierge@ld-mode.com.');
+    })();
+  </script>
+</body>
+</html>
