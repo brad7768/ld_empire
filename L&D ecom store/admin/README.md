@@ -5,6 +5,17 @@
 - `js/supabase-config.js` renseigné
 - Migrations Supabase appliquées : `007_site_settings.sql`, **`008_site_settings_draft.sql`**
 - Utilisateur dans `admin_users`
+- **Réinitialisation mot de passe** : dans Supabase → Authentication → URL Configuration, ajouter aux **Redirect URLs** :
+  - `https://ld-store.netlify.app/admin/reset-password.html`
+  - `https://ld-empire.ca/admin/reset-password.html` (si domaine custom)
+  - `http://localhost:8081/admin/reset-password.html` (dev local)
+
+## Mot de passe oublié
+
+- [ ] Lien « Mot de passe oublié ? » visible sur la page de connexion
+- [ ] `/admin/forgot-password.html` — envoi email (compte admin uniquement côté reset)
+- [ ] Email Supabase → lien vers `/admin/reset-password.html`
+- [ ] Nouveau mot de passe enregistré → redirection connexion
 
 ## Navigation (Phase 1–2)
 
