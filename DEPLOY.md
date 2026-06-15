@@ -100,7 +100,71 @@ git push origin main
 # 3. Netlify rebuild automatiquement (1–3 min)
 ```
 
-## Supabase (inchangé)
+## Étape F — Stripe Checkout (Edge Functions Supabase)
+
+L’erreur **« Failed to send a request to the Edge Function »** au paiement signifie que les fonctions **`create-checkout-session`** et **`stripe-webhook`** ne sont pas déployées sur Supabase (réponse `NOT_FOUND`).
+
+### Prérequis (une fois)
+
+```bash
+brew install supabase/tap/supabase
+supabase login
+```
+
+### Déploiement rapide
+
+1. Copier les variables d’exemple :
+
+   ```bash
+   cd "L&D ecom store"
+   cp supabase-secrets.example .env.supabase.local
+   # Éditer .env.supabase.local avec votre clé Stripe (sk_test_... ou sk_live_...)
+   ```
+
+2. Lancer le script :
+
+   ```bash
+   source .env.supabase.local   # ou exporter les variables à la main
+   chmod +x scripts/deploy-supabase-stripe.sh
+   npm run deploy:stripe
+   ```
+
+   Ou en une ligne :
+
+   ```bash
+   STRIPE_SECRET_KEY=sk_test_VOTRE_CLE SITE_URL=https://ld-empire.ca ./scripts/deploy-supabase-stripe.sh
+   ```
+
+### Secrets Supabase requis
+
+| Secret | Source |
+|--------|--------|
+| `STRIPE_SECRET_KEY` | [Stripe → API keys](https://dashboard.stripe.com/apikeys) |
+| `SITE_URL` | `https://ld-empire.ca` (sans slash final) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe → Webhooks → signing secret (`whsec_…`) |
+
+`SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` sont injectés automatiquement par Supabase au runtime des Edge Functions.
+
+### Webhook Stripe (commandes marquées payées)
+
+1. [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks) → **Add endpoint**
+2. URL : `https://liwswmcofxlvlyokkazm.supabase.co/functions/v1/stripe-webhook`
+3. Événement : **`checkout.session.completed`**
+4. Copier le signing secret → `supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...`
+
+### Vérification
+
+```bash
+curl -s -X POST "https://liwswmcofxlvlyokkazm.supabase.co/functions/v1/create-checkout-session" \
+  -H "Content-Type: application/json" -d '{}'
+```
+
+- ❌ Avant déploiement : `"Requested function was not found"`
+- ✅ Après déploiement : `"Valid email required"` ou autre erreur métier (la fonction répond)
+
+Puis tester sur le site : panier → checkout → **Payer avec Stripe** → redirection vers Stripe Checkout.
+
+## Supabase (référence CLI)
 
 Les Edge Functions Stripe ne passent pas par Netlify :
 
@@ -110,7 +174,7 @@ supabase functions deploy create-checkout-session
 supabase functions deploy stripe-webhook
 ```
 
-Secrets Supabase : `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`.
+Secrets : `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL` — ou utiliser `npm run deploy:stripe`.
 
 ## Dépannage
 
@@ -123,3 +187,7 @@ Secrets Supabase : `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`.
 | Email reset → `localhost:3000` | Corriger **Site URL** + **Redirect URLs** dans Supabase (voir Étape E) |
 | Reset : « Lien invalide ou expiré » | Lien expiré (~1 h) ou compte absent de `admin_users` — renvoyer un email |
 | Reset : page blanche / refus connexion | Vérifier que `SUPABASE_URL` + `SUPABASE_ANON_KEY` sont dans Netlify |
+| Paiement : « Failed to send a request to the Edge Function » | Déployer les fonctions Supabase (voir **Étape F**) |
+| Paiement : « Stripe is not configured » | `supabase secrets set STRIPE_SECRET_KEY=sk_...` |
+| Paiement : « SITE_URL secret missing » | `supabase secrets set SITE_URL=https://ld-empire.ca` |
+| Commande reste « pending » après paiement | Configurer webhook Stripe + `STRIPE_WEBHOOK_SECRET` |
