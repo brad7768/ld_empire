@@ -118,6 +118,16 @@ function stripeLineItems(
   return stripeItems;
 }
 
+function findCatalogEntry(idOrSlug: string): { key: string; entry: CatalogEntry } | null {
+  const id = idOrSlug.trim();
+  if (!id) return null;
+  if (PRODUCT_CATALOG[id]) return { key: id, entry: PRODUCT_CATALOG[id] };
+  for (const [key, entry] of Object.entries(PRODUCT_CATALOG)) {
+    if (entry.slug === id) return { key, entry };
+  }
+  return null;
+}
+
 function computeTotalsValidatedDb(
   lines: Array<{ priceCents: number; qty: number }>,
   shippingMethod: string
@@ -306,24 +316,76 @@ Deno.serve(async (req) => {
     }
 
     const pid = typeof row.productId === "string" ? row.productId.trim() : "";
-    const entry = pid ? PRODUCT_CATALOG[pid] : undefined;
+    const catalogHit = pid ? findCatalogEntry(pid) : null;
 
-    if (!entry) {
-      return jsonResponse({ error: `Unknown product (${pid || "?"}) — variantId required.` }, 400);
+    if (catalogHit) {
+      const { key, entry } = catalogHit;
+      validated.push({
+        entry,
+        productId: key,
+        variantId: null,
+        qty,
+        sizeLabel,
+        colorLabel: colorKey,
+        priceCents: entry.priceCents,
+        productNameFr: entry.nameFr,
+        productNameEn: entry.nameEn,
+        sku: computeSku(entry, sizeLabel, colorKey),
+      });
+      continue;
     }
 
-    validated.push({
-      entry,
-      productId: pid,
-      variantId: null,
-      qty,
-      sizeLabel,
-      colorLabel: colorKey,
-      priceCents: entry.priceCents,
-      productNameFr: entry.nameFr,
-      productNameEn: entry.nameEn,
-      sku: computeSku(entry, sizeLabel, colorKey),
-    });
+    if (pid) {
+      const { data: productRow, error: pErr } = await supabase
+        .from("products")
+        .select(`
+          id, slug, name, active,
+          product_variants (
+            id, sku, size, color, price_cents, active,
+            inventory ( on_hand )
+          )
+        `)
+        .eq("slug", pid)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (!pErr && productRow?.active) {
+        const variants = (productRow.product_variants || []).filter(
+          (v: { active?: boolean }) => v.active !== false
+        );
+        const sz = sizeLabel || "Unique";
+        const col = colorKey || "Standard";
+        const variant =
+          variants.find((v: { size?: string; color?: string }) => v.size === sz && v.color === col) ||
+          variants.find((v: { size?: string }) => v.size === sz) ||
+          variants[0];
+
+        if (variant) {
+          const onHand = Array.isArray(variant.inventory)
+            ? (variant.inventory[0]?.on_hand ?? 0)
+            : (variant.inventory as { on_hand?: number } | null)?.on_hand ?? 0;
+
+          if (onHand < qty) {
+            return jsonResponse({ error: `Insufficient stock for ${variant.sku}.` }, 400);
+          }
+
+          validated.push({
+            productId: productRow.slug,
+            variantId: variant.id,
+            qty,
+            sizeLabel: variant.size || sz,
+            colorLabel: variant.color || col,
+            priceCents: variant.price_cents,
+            productNameFr: productRow.name,
+            productNameEn: productRow.name,
+            sku: variant.sku,
+          });
+          continue;
+        }
+      }
+    }
+
+    return jsonResponse({ error: `Unknown product (${pid || "?"}).` }, 400);
   }
 
   const totals = computeTotalsValidatedDb(validated, shippingMethod);
@@ -349,12 +411,18 @@ Deno.serve(async (req) => {
     tax_cents: totals.taxCents,
     total_cents: totals.totalCents,
     currency: "CAD",
-    shipping_method: shippingMethod,
     notes: notesPayload,
   }).select("id").single();
 
   if (orderErr || !orderRow?.id) {
     console.error("[checkout] orders insert:", orderErr);
+    const code = (orderErr as { code?: string })?.code;
+    const msg = (orderErr as { message?: string })?.message || "";
+    if (code === "42P01" || msg.includes("does not exist")) {
+      return jsonResponse({
+        error: "Orders table missing. Run: supabase db push (migrations in supabase/migrations/).",
+      }, 500);
+    }
     return jsonResponse({ error: "Could not create order record." }, 500);
   }
 

@@ -55,6 +55,16 @@ else
 fi
 supabase secrets set "${SECRET_ARGS[@]}"
 
+if [ "${SKIP_DB_PUSH:-}" != "1" ]; then
+  echo "→ Applying database migrations (supabase db push)…"
+  if supabase db push --project-ref "$PROJECT_REF"; then
+    echo "   Migrations applied."
+  else
+    echo "   ⚠ db push failed — run manually: supabase db push"
+    echo "     Checkout needs orders table (migration 003+)."
+  fi
+fi
+
 echo "→ Deploying create-checkout-session…"
 supabase functions deploy create-checkout-session --project-ref "$PROJECT_REF"
 

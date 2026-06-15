@@ -1072,8 +1072,24 @@ const formatPrice = (amount) => {
   return `$${amount.toLocaleString('en-US')}`;
 };
 
+function findProduct(productId) {
+  if (!productId) return null;
+  return products.find(x => x.id === productId || x.slug === productId) || null;
+}
+
+function pruneStaleCartItems() {
+  if (!state.cart.length || !products.length) return;
+  const before = state.cart.length;
+  state.cart = state.cart.filter(item => findProduct(item.productId));
+  if (state.cart.length !== before) {
+    try {
+      localStorage.setItem('atelier-cart', JSON.stringify(state.cart));
+    } catch (_) {}
+  }
+}
+
 function cartItemPrice(item) {
-  const p = products.find(x => x.id === item.productId);
+  const p = findProduct(item.productId);
   if (!p) return 0;
   if (item.priceCents != null) return item.priceCents / 100;
   if (window.LD_CATALOG) return LD_CATALOG.itemUnitPrice(p, item.variantId);
@@ -1805,7 +1821,7 @@ function renderMiniCart() {
     return;
   }
   content.innerHTML = state.cart.map(item => {
-    const p = products.find(x => x.id === item.productId);
+    const p = findProduct(item.productId);
     if (!p) return '';
     return `<div class="flex gap-3 border-b border-ink-100 pb-3">
       ${productHasImages(p) ? `<img src="${p.images[0]}" alt="${p.name[state.locale]}" class="w-14 h-16 object-cover bg-cream-100">` : `<div class="w-14 h-16 shrink-0 bg-cream-100 border border-ink-100/50" aria-hidden="true"></div>`}
@@ -2356,7 +2372,7 @@ function renderCart() {
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 lg:gap-20">
       <div>
         ${state.cart.map((item, idx) => {
-          const p = products.find(x => x.id === item.productId);
+          const p = findProduct(item.productId);
           if (!p) return '';
           return `
             <div class="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] gap-6 py-8 border-b border-ink-100">
@@ -2497,7 +2513,7 @@ function renderCheckout() {
       <h3 class="text-[11px] tracking-ultra uppercase mb-6">${t('checkout.orderSummary')}</h3>
       <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
         ${state.cart.map(item => {
-          const p = products.find(x => x.id === item.productId);
+          const p = findProduct(item.productId);
           return p ? `
             <div class="flex gap-4">
               <div class="relative w-16 h-20 bg-cream-50 shrink-0 overflow-hidden">
@@ -2613,6 +2629,15 @@ async function startStripeCheckout() {
     navigate('cart');
     return;
   }
+  pruneStaleCartItems();
+  const subtotal = cartTotal();
+  if (subtotal <= 0) {
+    alert(state.locale === 'fr'
+      ? 'Panier invalide (total 0 $). Videz le panier et ajoutez à nouveau vos articles.'
+      : 'Invalid cart (total $0). Clear the cart and add items again.');
+    navigate('cart');
+    return;
+  }
   if (!sb) {
     alert(t('checkout.supabaseMissing'));
     return;
@@ -2634,10 +2659,18 @@ async function startStripeCheckout() {
   }));
 
   const cartPayload = state.cart.map((item) => {
-    const p = products.find(x => x.id === item.productId);
+    const p = findProduct(item.productId);
+    let variantId = item.variantId || null;
+    if (!variantId && p && window.LD_CATALOG) {
+      const colorLabel = typeof item.color === 'string'
+        ? item.color
+        : (item.color && typeof item.color === 'object' ? String(item.color.fr || item.color.en || '') : '');
+      const resolved = LD_CATALOG.resolveVariant(p, item.size, colorLabel);
+      variantId = resolved?.id || null;
+    }
     return {
-      productId: p?._legacyId || item.productId,
-      variantId: item.variantId || null,
+      productId: p?._legacyId || p?.slug || item.productId,
+      variantId,
       quantity: item.quantity,
       size: item.size,
       color: typeof item.color === 'string'
@@ -2656,7 +2689,16 @@ async function startStripeCheckout() {
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      let msg = error.message || '';
+      if (error.context && typeof error.context.json === 'function') {
+        try {
+          const body = await error.context.json();
+          if (body?.error) msg = body.error;
+        } catch (_) {}
+      }
+      throw new Error(msg || 'checkout error');
+    }
     if (data?.error) throw new Error(typeof data.error === 'string' ? data.error : 'checkout error');
     if (data?.url) {
       window.location.href = data.url;
@@ -2900,6 +2942,7 @@ async function handleSignOut() {
   } else {
     state.cart = JSON.parse(localStorage.getItem('atelier-cart') || '[]');
   }
+  pruneStaleCartItems();
   await loadSiteSettingsOverrides();
   await refreshGlobalReviewsCache();
   applyI18n();

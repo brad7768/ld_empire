@@ -111,6 +111,16 @@ brew install supabase/tap/supabase
 supabase login
 ```
 
+**Important :** le checkout nécessite les tables `orders` / `order_items`. Si vous voyez « Could not create order record », exécutez d'abord :
+
+```bash
+cd "L&D ecom store"
+export HOME="/Users/modedavion"   # si votre $HOME pointe ailleurs
+export PATH="/Users/modedavion/.local/bin:$PATH"
+supabase link --project-ref liwswmcofxlvlyokkazm
+supabase db push
+```
+
 ### Déploiement rapide
 
 1. Copier les variables d’exemple :

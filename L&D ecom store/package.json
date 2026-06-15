@@ -6,7 +6,8 @@
     "theme:apply": "node scripts/apply-site-theme.js",
     "dev": "node scripts/netlify-build.js && node node_modules/serve/build/main.js -p 8081 .",
     "seed:catalog": "node scripts/seed-supabase-catalog.js",
-    "deploy:stripe": "bash scripts/deploy-supabase-stripe.sh"
+    "deploy:stripe": "bash scripts/deploy-supabase-stripe.sh",
+    "db:push": "supabase db push"
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.49.8",
