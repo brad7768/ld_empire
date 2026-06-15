@@ -9,3 +9,4 @@ js/supabase-config.js
 # Dossier local non lié au site
 Telegram Desktop/
 .DS_Store
+supabase/.temp/
