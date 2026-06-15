@@ -32,12 +32,6 @@ const COLLECTION_LINKS = {
   finitions: '/collection/accessoires',
 };
 
-const COLLECTION_IMAGES = {
-  silhouettes: '../assets/products/imported/new-001.png',
-  signatures: '../assets/products/imported/new-009.png',
-  finitions: '../assets/products/imported/new-014.png',
-};
-
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_ANON_KEY;
 const locale = process.env.THEME_LOCALE || 'fr';
@@ -138,10 +132,9 @@ function buildCollectionsGridHtml(copy) {
     .map((item) => {
       const id = String(item.id || '');
       const href = COLLECTION_LINKS[id] || '/collection/pret-a-porter';
-      const img = COLLECTION_IMAGES[id] || '../assets/products/imported/new-001.png';
 
       return `<a href="${href}" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="${escapeHtml(id)}">
-        <img src="${img}" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+        <div class="absolute inset-0 bg-cream-200 transition-colors duration-500 group-hover:bg-cream-300"></div>
         <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
         <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
           <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">${escapeHtml(item.title || '')}</span>

@@ -207,11 +207,13 @@ function pageShell({ title, description, canonical, ogType, jsonLd, body, siteUr
 
 function productCard(product, siteUrl) {
   const url = `${siteUrl}/produit/${product.slug}/`;
-  const img = `${siteUrl}${product.image}`;
+  const media = product.image
+    ? `<img src="${escapeHtml(`${siteUrl}${product.image}`)}" alt="${escapeHtml(product.nameFr)}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" width="400" height="500">`
+    : `<span class="block h-full w-full bg-cream-200" aria-hidden="true"></span>`;
   return `
     <article class="group">
       <a href="${url}" class="block aspect-[4/5] overflow-hidden bg-cream-100 mb-4">
-        <img src="${escapeHtml(img)}" alt="${escapeHtml(product.nameFr)}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" width="400" height="500">
+        ${media}
       </a>
       <h3 class="serif text-lg"><a href="${url}" class="hover:text-gold-700">${escapeHtml(product.nameFr)}</a></h3>
       <p class="mt-1 text-sm text-ink-600">${formatPrice(product.price)}&nbsp;$ CAD</p>
@@ -221,14 +223,14 @@ function productCard(product, siteUrl) {
 
 function renderProductPage(product, siteUrl) {
   const canonical = `${siteUrl}/produit/${product.slug}/`;
-  const imageUrl = `${siteUrl}${product.image}`;
+  const imageUrl = product.image ? `${siteUrl}${product.image}` : '';
   const priceStr = formatPrice(product.price);
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.nameFr,
-    image: [imageUrl],
+    ...(imageUrl ? { image: [imageUrl] } : {}),
     description: product.descriptionFr,
     sku: product.id,
     brand: { '@type': 'Brand', name: 'L&D' },
@@ -250,8 +252,8 @@ function renderProductPage(product, siteUrl) {
       <span class="text-ink-900">${escapeHtml(product.nameFr)}</span>
     </nav>
     <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
-      <div class="aspect-[4/5] overflow-hidden bg-cream-100">
-        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.nameFr)} — L&amp;D" class="h-full w-full object-cover" width="800" height="1000">
+      <div class="aspect-[4/5] overflow-hidden bg-cream-200">
+        ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.nameFr)} — L&amp;D" class="h-full w-full object-cover" width="800" height="1000">` : '<span class="block h-full w-full bg-cream-200" aria-hidden="true"></span>'}
       </div>
       <div>
         <p class="text-[11px] tracking-ultra uppercase text-gold-700 mb-3">L&amp;D · Collection</p>
@@ -335,6 +337,7 @@ function renderPromoPage(products, siteUrl) {
 
 function renderGoogleShoppingFeed(products, siteUrl) {
   const items = products
+    .filter((p) => p.image)
     .map((p) => {
       const link = `${siteUrl}/produit/${p.slug}/`;
       const image = `${siteUrl}${p.image}`;
@@ -372,7 +375,7 @@ function csvEscape(value) {
 
 function renderMetaCatalogFeed(products, siteUrl) {
   const header = 'id,title,description,availability,condition,price,link,image_link,brand';
-  const rows = products.map((p) =>
+  const rows = products.filter((p) => p.image).map((p) =>
     [
       p.id,
       p.nameFr,

@@ -79,11 +79,7 @@
   }
 
   function mapCatalogJsonRow(row, index) {
-    const images = row.image
-      ? [normalizeImageUrl(row.image)]
-      : [
-          `../assets/products/imported/new-${String(index * 6 + 1).padStart(3, "0")}.png`,
-        ];
+    const images = row.image ? [normalizeImageUrl(row.image)] : [];
 
     return {
       id: row.id || row.slug,

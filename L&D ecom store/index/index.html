@@ -13,11 +13,11 @@
 <meta property="og:title" content="L&amp;D — Mode féminine &amp; accessoires de qualité">
 <meta property="og:description" content="Découvrez L&amp;D, boutique en ligne de mode féminine et accessoires de qualité. Nouveautés en édition limitée, pièces soigneusement sélectionnées et livraison soignée.">
 <meta property="og:url" content="https://ld-store.netlify.app/">
-<meta property="og:image" content="https://ld-store.netlify.app/assets/products/imported/new-001.png">
+<meta property="og:image" content="">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="L&amp;D — Mode féminine &amp; accessoires de qualité">
 <meta name="twitter:description" content="Découvrez L&amp;D, boutique en ligne de mode féminine et accessoires de qualité. Nouveautés en édition limitée, pièces soigneusement sélectionnées et livraison soignée.">
-<meta name="twitter:image" content="https://ld-store.netlify.app/assets/products/imported/new-001.png">
+<meta name="twitter:image" content="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -394,12 +394,7 @@ tailwind.config = {
 <div id="page-home" class="page active">
   <!-- Hero -->
   <section data-editor-section="hero" class="relative h-screen hero-mobile-compact min-h-[640px] overflow-hidden -mt-16 lg:-mt-20" aria-label="Accueil">
-    <div id="hero-carousel" class="absolute inset-0 bg-gradient-to-br from-ink-800 via-ink-900 to-stone-950" aria-hidden="true">
-      <img data-hero-slide src="../assets/products/imported/new-001.png" alt="" class="hero-carousel-slide is-active absolute inset-0 h-full w-full object-cover opacity-70 z-[1]" fetchpriority="high" decoding="async">
-      <img data-hero-slide src="../assets/products/imported/new-004.png" alt="" class="hero-carousel-slide absolute inset-0 h-full w-full object-cover opacity-0 z-0" loading="lazy" decoding="async">
-      <img data-hero-slide src="../assets/products/imported/new-009.png" alt="" class="hero-carousel-slide absolute inset-0 h-full w-full object-cover opacity-0 z-0" loading="lazy" decoding="async">
-      <img data-hero-slide src="../assets/products/imported/new-014.png" alt="" class="hero-carousel-slide absolute inset-0 h-full w-full object-cover opacity-0 z-0" loading="lazy" decoding="async">
-    </div>
+    <div id="hero-carousel" class="absolute inset-0 bg-gradient-to-br from-ink-800 via-ink-900 to-stone-950" aria-hidden="true"></div>
     <div class="absolute inset-0 bg-gradient-to-b from-ink-900/45 via-ink-900/15 to-ink-900/55"></div>
     <div class="absolute inset-0 bg-gradient-to-r from-ink-900/50 via-ink-900/10 to-transparent"></div>
     <div class="relative z-10 h-full flex flex-col justify-center lg:justify-end pb-20 lg:pb-32 px-6 lg:px-16">
@@ -428,9 +423,7 @@ tailwind.config = {
   <section id="ld-manifesto" data-editor-section="manifesto" class="py-20 lg:py-32 px-6 lg:px-12 bg-white scroll-mt-28">
     <div class="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 xl:gap-20 items-center">
       <div class="lg:col-span-5 order-2 lg:order-1 reveal">
-        <div class="ld-manifesto-media relative aspect-[4/5] max-w-md mx-auto lg:max-w-none overflow-hidden bg-cream-200">
-          <img src="../assets/products/imported/new-004.png" alt="" class="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async">
-        </div>
+        <div class="ld-manifesto-media relative aspect-[4/5] max-w-md mx-auto lg:max-w-none overflow-hidden bg-cream-200" aria-hidden="true"></div>
       </div>
       <div class="lg:col-span-6 lg:col-start-7 order-1 lg:order-2 reveal">
         <h2 class="serif text-3xl sm:text-4xl lg:text-[2.75rem] font-light leading-[1.12] text-ink-900 mb-6 lg:mb-8 max-w-lg" data-copy="manifesto.title">Derrière chaque pièce, une histoire de puissance.</h2>
@@ -445,21 +438,21 @@ tailwind.config = {
       <p class="reveal text-[11px] tracking-ultra uppercase text-ink-500 mb-8 lg:mb-10" data-copy="collections.title">Les Piliers de l'Empire</p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
         <a href="/collection/pret-a-porter" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="silhouettes">
-          <img src="../assets/products/imported/new-001.png" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-cream-200 transition-colors duration-500 group-hover:bg-cream-300"></div>
           <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
           <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
             <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">Les Silhouettes</span>
           </div>
         </a>
         <a href="/collection/parfums" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="signatures">
-          <img src="../assets/products/imported/new-009.png" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-cream-200 transition-colors duration-500 group-hover:bg-cream-300"></div>
           <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
           <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
             <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">Les Signatures Olfactives</span>
           </div>
         </a>
         <a href="/collection/accessoires" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="finitions">
-          <img src="../assets/products/imported/new-014.png" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-cream-200 transition-colors duration-500 group-hover:bg-cream-300"></div>
           <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
           <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
             <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">Les Finitions</span>
@@ -2351,7 +2344,6 @@ async function renderProductDetail() {
     ${reviewsBlock}
 
     <div class="reveal relative aspect-[21/9] mt-32 overflow-hidden bg-ink-900">
-      <img src="https://images.unsplash.com/photo-1604147495798-57beb5d6af73?w=2400&q=85" alt="Bannière éditoriale L&D mettant en avant la qualité des matières" class="absolute inset-0 w-full h-full object-cover opacity-50">
       <div class="absolute inset-0 bg-gradient-to-t from-ink-900/70 to-ink-900/30"></div>
       <div class="absolute inset-0 flex items-center justify-center text-center px-6">
         <div class="max-w-2xl">
