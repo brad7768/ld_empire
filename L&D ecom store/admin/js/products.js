@@ -13,6 +13,7 @@ import {
 } from "./ui.js";
 import { normalizeProductImageUrls } from "./media.js";
 import { buildHash, setRouteHash } from "./router.js";
+import { deactivateProductRecord } from "./theme-editor.js";
 
 const PAGE_SIZE = 10;
 
@@ -83,9 +84,12 @@ export function createProductsModule(ctx) {
           <td class="px-4 py-3">${productStatusBadge(p.active)}</td>
           <td class="px-4 py-3 text-[13px] tabular-nums">${inv}</td>
           <td class="px-4 py-3 text-right">
+            <div class="flex justify-end gap-1.5">
             <button type="button" data-id="${p.id}" data-active="${p.active}" class="toggle-product admin-btn-ghost h-8 px-2.5 text-[11px]">
               ${p.active ? "Désactiver" : "Activer"}
             </button>
+            <button type="button" data-id="${p.id}" class="delete-product admin-btn-ghost h-8 px-2.5 text-[11px] text-red-700 hover:bg-red-50">Supprimer</button>
+            </div>
           </td>
         </tr>`;
         })
@@ -118,6 +122,26 @@ export function createProductsModule(ctx) {
         await ctx.refreshAnalytics();
       });
     });
+    tbody.querySelectorAll(".delete-product").forEach((btn) => {
+      btn.addEventListener("click", async (ev) => {
+        ev.stopPropagation();
+        const ok = await confirmDialog({
+          title: "Désactiver ce produit ?",
+          body: "Le produit sera retiré de la boutique (soft delete).",
+          danger: true
+        });
+        if (!ok) return;
+        try {
+          await deactivateProductRecord(ctx.sb, btn.dataset.id);
+          toast("Produit désactivé", "success");
+          await ctx.refreshProductsTab();
+          await ctx.refreshStockTab();
+          await ctx.refreshAnalytics();
+        } catch (err) {
+          toast(err.message || "Erreur", "error");
+        }
+      });
+    });
   }
 
   function fillProductForm(p = null) {
@@ -125,11 +149,27 @@ export function createProductsModule(ctx) {
     document.getElementById("pf-id").value = p?.id || "";
     document.getElementById("pf-name").value = p?.name || "";
     document.getElementById("pf-slug").value = p?.slug || "";
-    document.getElementById("pf-category").value = p?.category || "";
+    const catEl = document.getElementById("pf-category");
+    if (catEl) catEl.value = p?.category || "";
     document.getElementById("pf-description").value = p?.description || "";
     document.getElementById("pf-active").checked = p ? !!p.active : true;
-    document.getElementById("pf-image-urls").value = normalizeProductImageUrls(p?.image_urls).join("\n");
+    const imgs = normalizeProductImageUrls(p?.image_urls);
+    document.getElementById("pf-image-url").value = imgs[0] || "";
+    document.getElementById("pf-image-urls").value = imgs.slice(1).join("\n");
+    const previewWrap = document.getElementById("pf-image-preview-wrap");
+    const previewImg = document.getElementById("pf-image-preview");
+    if (imgs[0] && previewWrap && previewImg) {
+      previewWrap.classList.remove("hidden");
+      previewImg.src = imgs[0];
+    } else if (previewWrap) {
+      previewWrap.classList.add("hidden");
+    }
+    const variants = p ? ctx.state.variantsCache.filter((v) => v.product_id === p.id) : [];
+    const firstVar = variants[0];
+    document.getElementById("pf-price").value = firstVar ? (firstVar.price_cents / 100).toFixed(2) : "";
+    document.getElementById("pf-stock").value = firstVar ? (firstVar.inventory?.[0]?.on_hand ?? 0) : 0;
     document.getElementById("product-form-title").textContent = isNew ? "Nouveau produit" : p.name || "Produit";
+    document.getElementById("product-form-submit").textContent = isNew ? "Ajouter le produit" : "Enregistrer";
     document.getElementById("product-variants-block")?.classList.toggle("hidden", isNew);
     if (!isNew) renderVariantsList(p.id);
     ctx.state.productFormDirty = false;
@@ -186,11 +226,16 @@ export function createProductsModule(ctx) {
   async function saveProduct(e) {
     e.preventDefault();
     const id = document.getElementById("pf-id").value;
+    if (!id) return;
     const name = document.getElementById("pf-name").value.trim();
     let slug = document.getElementById("pf-slug").value.trim();
     const category = document.getElementById("pf-category").value.trim();
     if (!name || !category) {
       toast("Nom et catégorie requis", "error");
+      return;
+    }
+    if (!id && !(priceCad > 0)) {
+      toast("Prix valide requis", "error");
       return;
     }
     if (!slug) slug = slugify(name);
@@ -204,7 +249,10 @@ export function createProductsModule(ctx) {
       return;
     }
     const urlsRaw = document.getElementById("pf-image-urls")?.value || "";
-    const image_urls = urlsRaw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    const primaryUrl = (document.getElementById("pf-image-url")?.value || "").trim();
+    const image_urls = [...new Set([primaryUrl, ...urlsRaw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean)].filter(Boolean))];
+    const priceCad = Number(document.getElementById("pf-price")?.value);
+    const stockQty = Number(document.getElementById("pf-stock")?.value) || 0;
     const payload = {
       name,
       slug,
@@ -225,13 +273,6 @@ export function createProductsModule(ctx) {
         setRouteHash("products", { sub: "edit", id });
         await ctx.refreshProductsTab();
         setStickyBar({ visible: true, dirty: false, ...productFormSaveHandlers(), saveLabel: "Enregistrer" });
-      } else {
-        const { data, error } = await ctx.sb.from("products").insert(payload).select("id").single();
-        if (error) throw error;
-        toast("Produit créé", "success");
-        ctx.state.productFormDirty = false;
-        setRouteHash("products", { sub: "edit", id: data.id });
-        await ctx.refreshProductsTab();
       }
       await ctx.refreshAnalytics();
     } catch (err) {
@@ -291,6 +332,22 @@ export function createProductsModule(ctx) {
       renderProductsList();
     });
     document.getElementById("product-form")?.addEventListener("submit", saveProduct);
+    document.getElementById("pf-image-url")?.addEventListener("input", () => {
+      const url = (document.getElementById("pf-image-url")?.value || "").trim();
+      const wrap = document.getElementById("pf-image-preview-wrap");
+      const img = document.getElementById("pf-image-preview");
+      if (!wrap || !img) return;
+      if (!url) {
+        wrap.classList.add("hidden");
+        img.removeAttribute("src");
+        return;
+      }
+      wrap.classList.remove("hidden");
+      img.src = url;
+      img.onerror = () => wrap.classList.add("hidden");
+      ctx.state.productFormDirty = true;
+      setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });
+    });
     document.getElementById("pf-name")?.addEventListener("input", (e) => {
       ctx.state.productFormDirty = true;
       setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });
@@ -302,7 +359,7 @@ export function createProductsModule(ctx) {
       ctx.state.productFormDirty = true;
       setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });
     });
-    ["pf-description", "pf-category", "pf-image-urls"].forEach((id) => {
+    ["pf-description", "pf-category", "pf-image-urls", "pf-price", "pf-stock"].forEach((id) => {
       document.getElementById(id)?.addEventListener("input", () => {
         ctx.state.productFormDirty = true;
         setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });

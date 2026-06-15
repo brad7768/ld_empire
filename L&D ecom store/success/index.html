@@ -40,13 +40,6 @@
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       opacity: 0.5; mix-blend-mode: multiply;
     }
-    .link-underline { position: relative; display: inline-block; }
-    .link-underline::after {
-      content: ""; position: absolute; bottom: -2px; left: 0; width: 100%; height: 1px;
-      background-color: currentColor; transform: scaleX(0); transform-origin: right center;
-      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .link-underline:hover::after { transform: scaleX(1); transform-origin: left center; }
   </style>
   <script src="../js/supabase-config.js"></script>
   <script src="../js/storefront-cart.js"></script>
@@ -59,44 +52,35 @@
   </header>
 
   <main class="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
-    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-gold-700/30 bg-cream-100 text-gold-700" aria-hidden="true">
+    <div class="mb-8 flex h-16 w-16 items-center justify-center rounded-full border border-gold-700/30 bg-cream-100 text-gold-700" aria-hidden="true">
       <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
       </svg>
     </div>
-    <h1 class="serif text-3xl sm:text-4xl text-ink-900 mb-3" id="success-title">Merci pour votre commande</h1>
-    <p class="text-sm text-ink-600 max-w-md mb-8 leading-relaxed" id="success-message">Finalisation de votre paiement…</p>
-    <a href="../index/index.html" class="inline-block min-h-[44px] px-8 py-3 bg-ink-900 text-cream-50 text-[11px] tracking-ultra uppercase hover:bg-gold-700 transition-colors">
-      Retour à la boutique
-    </a>
+    <h1 class="serif text-3xl sm:text-4xl lg:text-5xl text-ink-900 mb-4 font-light leading-tight" id="success-title" data-copy="success.title">Bienvenue dans l'Empire.</h1>
+    <p class="text-[11px] tracking-ultra uppercase text-gold-700 mb-6" id="success-subtitle" data-copy="success.subtitle">Votre commande a été validée avec succès.</p>
+    <p class="text-sm text-ink-600 max-w-md mb-10 leading-relaxed font-light" id="success-message" data-copy="success.message">Un courriel contenant votre reçu et le récapitulatif détaillé de vos articles vient de vous être envoyé. Notre atelier prépare actuellement votre colis avec la plus grande attention.</p>
+    <a href="../index/index.html" class="inline-flex min-h-[44px] items-center justify-center px-10 py-3 bg-ink-900 text-cream-50 text-[11px] tracking-ultra uppercase hover:bg-gold-700 transition-colors duration-300" data-copy="success.cta">Continuer l'exploration</a>
   </main>
 
   <script>
     /**
-     * Post-checkout Jamstack :
-     * 1. Lit session_id Stripe (query string)
-     * 2. Vide le panier localStorage
-     * 3. Appelle clear_guest_cart via Supabase (panier invité serveur)
+     * Post-checkout : vide le panier localStorage + panier invité Supabase au chargement.
      */
     (async function initCheckoutSuccess() {
-      const params = new URLSearchParams(window.location.search);
-      const sessionId = params.get('session_id');
-      const titleEl = document.getElementById('success-title');
-      const msgEl = document.getElementById('success-message');
-
       const LS_CART = 'atelier-cart';
       const LS_GUEST_TOKEN = 'ld-guest-cart-token';
 
-      /** Toujours vider le cache local du panier après paiement validé. */
       function clearLocalCart() {
-        localStorage.setItem(LS_CART, '[]');
+        try {
+          localStorage.removeItem(LS_CART);
+          localStorage.setItem(LS_CART, '[]');
+        } catch (_) {
+          localStorage.setItem(LS_CART, '[]');
+        }
         sessionStorage.removeItem('ld-stripe-return');
       }
 
-      /**
-       * Nettoie le panier invité côté Supabase (RPC clear_guest_cart).
-       * @returns {Promise<void>}
-       */
       async function clearGuestCartRemote() {
         const cfg = window.LD_SUPABASE;
         if (!cfg?.url || !cfg?.anonKey) return;
@@ -128,16 +112,10 @@
         /* localStorage déjà vidé — échec RPC non bloquant */
       }
 
-      if (sessionId) {
-        msgEl.textContent =
-          'Votre paiement a été reçu. Vous recevrez un courriel de confirmation sous peu.';
-      } else {
-        msgEl.textContent =
-          'Votre panier a été vidé. Si vous venez de payer, la confirmation arrivera par courriel.';
+      const params = new URLSearchParams(window.location.search);
+      if (!params.get('session_id')) {
         console.warn('[L&D success] session_id absent dans l’URL.');
       }
-
-      titleEl.textContent = 'Merci pour votre commande';
     })();
   </script>
 </body>

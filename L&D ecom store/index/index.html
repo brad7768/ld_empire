@@ -189,10 +189,30 @@ tailwind.config = {
   }
   .header-icon-btn:hover { background-color: rgba(28, 25, 23, 0.06); }
   .header-icon-btn:active { background-color: rgba(28, 25, 23, 0.1); }
+
+  /* Top bar + layout offset */
+  #ld-top-bar { min-height: 36px; }
+  body.has-top-bar #header { top: 36px; }
+  body.has-top-bar #page-home > section[data-editor-section="hero"] { margin-top: calc(-4rem - 36px); }
+  @media (min-width: 1024px) {
+    body.has-top-bar #page-home > section[data-editor-section="hero"] { margin-top: calc(-5rem - 36px); }
+  }
+
+  /* Collection cards — zoom progressif */
+  .ld-collection-card { border-radius: 2px; }
+  .ld-collection-card img { will-change: transform; }
+  @media (prefers-reduced-motion: reduce) {
+    .ld-collection-card img { transition: none !important; }
+  }
 </style>
 </head>
-<body class="grain">
+<body class="grain has-top-bar">
 <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+
+<!-- Top bar — copywriting build -->
+<div id="ld-top-bar" data-editor-section="topBar" class="fixed top-0 inset-x-0 z-[60] bg-ink-900 text-cream-50">
+  <p class="py-2.5 px-4 text-center text-[10px] sm:text-[11px] tracking-[0.22em] uppercase font-light" data-copy="topBar.text">Livraison offerte au Canada et en France à partir de 150 CAD.</p>
+</div>
 
 <!-- WCAG : annonces dynamiques (statut non urgent / erreurs urgentes) -->
 <div id="aria-live-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -355,21 +375,24 @@ tailwind.config = {
   <!-- Hero -->
   <section data-editor-section="hero" class="relative h-screen hero-mobile-compact min-h-[640px] overflow-hidden -mt-16 lg:-mt-20" aria-label="Accueil">
     <div id="hero-carousel" class="absolute inset-0 bg-gradient-to-br from-ink-800 via-ink-900 to-stone-950" aria-hidden="true">
-      <img data-hero-slide src="../assets/products/imported/new-001.png" alt="" class="hero-carousel-slide is-active absolute inset-0 h-full w-full object-cover opacity-100 z-[1]" fetchpriority="high" decoding="async">
+      <img data-hero-slide src="../assets/products/imported/new-001.png" alt="" class="hero-carousel-slide is-active absolute inset-0 h-full w-full object-cover opacity-70 z-[1]" fetchpriority="high" decoding="async">
       <img data-hero-slide src="../assets/products/imported/new-004.png" alt="" class="hero-carousel-slide absolute inset-0 h-full w-full object-cover opacity-0 z-0" loading="lazy" decoding="async">
       <img data-hero-slide src="../assets/products/imported/new-009.png" alt="" class="hero-carousel-slide absolute inset-0 h-full w-full object-cover opacity-0 z-0" loading="lazy" decoding="async">
       <img data-hero-slide src="../assets/products/imported/new-014.png" alt="" class="hero-carousel-slide absolute inset-0 h-full w-full object-cover opacity-0 z-0" loading="lazy" decoding="async">
     </div>
-    <div class="absolute inset-0 bg-gradient-to-b from-ink-900/30 via-ink-900/10 to-ink-900/50"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-ink-900/20 via-transparent to-transparent"></div>
-    <div class="relative z-10 h-full flex flex-col justify-end pb-20 lg:pb-32 px-6 lg:px-16">
-      <div class="max-w-3xl">
-        <p class="text-[11px] tracking-ultra uppercase text-cream-50/80 mb-6" data-i18n="home.heroTagline">Printemps · Été 2026</p>
-        <h1 class="serif text-5xl sm:text-6xl lg:text-8xl text-cream-50 font-light leading-[0.95]" data-i18n="home.heroTitle">L&amp;D — L&apos;élégance au quotidien</h1>
-        <div class="mt-10">
-          <a id="hero-cta-link" href="#" onclick="navigate('catalog'); return false;" class="inline-flex items-center gap-3 text-[11px] tracking-ultra uppercase text-cream-50 border-b border-cream-50/40 pb-2 hover:border-cream-50 transition-colors group">
-            <span data-i18n="home.heroCta">Découvrir la collection</span>
-            <span class="transition-transform group-hover:translate-x-1">→</span>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink-900/45 via-ink-900/15 to-ink-900/55"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-ink-900/50 via-ink-900/10 to-transparent"></div>
+    <div class="relative z-10 h-full flex flex-col justify-center lg:justify-end pb-20 lg:pb-32 px-6 lg:px-16">
+      <div class="max-w-2xl lg:max-w-3xl mx-auto lg:mx-0 text-center lg:text-left">
+        <p class="text-[11px] tracking-ultra uppercase text-cream-50/75 mb-6" data-copy="hero.tag" data-i18n="home.heroTagline">LA COLLECTION EXCLUSIVE</p>
+        <h1 class="serif text-4xl sm:text-5xl lg:text-7xl xl:text-8xl text-cream-50 font-light leading-[1.02]" data-copy="hero.title" data-i18n="home.heroTitle">Le luxe n&apos;est pas un privilège. C&apos;est une attitude.</h1>
+        <p class="mt-6 text-sm sm:text-base text-cream-50/80 leading-relaxed max-w-xl mx-auto lg:mx-0 font-light" data-copy="hero.subtitle">Découvrez une sélection de pièces de mode, parfums et accessoires conçus pour celles et ceux qui dictent leurs propres règles. Façonnez votre empire visuel dès aujourd&apos;hui.</p>
+        <div class="mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 sm:gap-5">
+          <a id="hero-cta-link" href="#" onclick="navigate('catalog'); return false;" class="inline-flex min-h-[44px] items-center justify-center px-8 py-3 bg-cream-50 text-ink-900 text-[11px] tracking-ultra uppercase hover:bg-gold-500 hover:text-cream-50 transition-colors duration-300">
+            <span data-copy="hero.primaryCTA" data-i18n="home.heroCta">Explorer la collection</span>
+          </a>
+          <a href="#ld-manifesto" onclick="scrollToManifesto(event)" class="inline-flex min-h-[44px] items-center justify-center px-8 py-3 border border-cream-50/50 text-cream-50 text-[11px] tracking-ultra uppercase hover:border-cream-50 hover:bg-cream-50/10 transition-colors duration-300">
+            <span data-copy="hero.secondaryCTA">Notre manifeste</span>
           </a>
         </div>
       </div>
@@ -382,13 +405,46 @@ tailwind.config = {
   </section>
 
   <!-- Manifesto -->
-  <section data-editor-section="manifesto" class="py-32 lg:py-44 px-6 lg:px-12 relative">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="reveal text-[11px] tracking-ultra uppercase text-gold-700 mb-8" data-i18n="home.manifestoEyebrow">— Notre promesse —</p>
-      <p class="reveal serif text-2xl sm:text-3xl lg:text-4xl font-light leading-[1.4] text-ink-900" data-i18n="home.manifesto">L&amp;D est une boutique en ligne dédiée aux femmes : vêtements et accessoires choisis pour leur coupe, leurs matières et leur durabilité. Nous croyons qu&apos;une garde-robe réfléchie commence par des pièces de qualité — celles que vous gardez saison après saison.</p>
+  <section id="ld-manifesto" data-editor-section="manifesto" class="py-32 lg:py-52 px-6 lg:px-12 relative bg-cream-50 scroll-mt-28">
+    <div class="mx-auto max-w-4xl text-center">
+      <h2 class="reveal serif text-3xl sm:text-4xl lg:text-5xl font-light leading-[1.15] text-ink-900 mb-10 lg:mb-14" data-copy="manifesto.title">Derrière chaque pièce, une histoire de puissance.</h2>
+      <p class="reveal text-base sm:text-lg lg:text-xl font-light leading-[1.75] text-ink-600 max-w-3xl mx-auto" data-copy="manifesto.text" data-i18n="home.manifesto">L&amp;D Empire n&apos;est pas une simple marque de mode. C&apos;est le point de rencontre entre le raffinement intemporel et l&apos;audace moderne. Nous croyons que ce que vous portez est la première page de votre réussite. Chaque tissu est choisi, chaque parfum est assemblé, chaque accessoire est pensé pour laisser une empreinte texturée, mémorable et unique.</p>
     </div>
-    <div class="absolute top-1/2 left-12 -translate-y-1/2 hidden lg:block"><div class="w-px h-32 bg-ink-200"></div></div>
-    <div class="absolute top-1/2 right-12 -translate-y-1/2 hidden lg:block"><div class="w-px h-32 bg-ink-200"></div></div>
+  </section>
+
+  <!-- Collections — piliers -->
+  <section data-editor-section="collections" class="py-24 lg:py-36 px-6 lg:px-12 bg-white">
+    <div class="mx-auto max-w-[1600px]">
+      <div class="reveal mb-14 lg:mb-20 text-center lg:text-left">
+        <h2 class="serif text-4xl lg:text-6xl font-light text-ink-900" data-copy="collections.title">Les Piliers de l'Empire</h2>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-4 lg:gap-5">
+        <a href="/collection/pret-a-porter" class="ld-collection-card group relative overflow-hidden min-h-[280px] lg:min-h-[320px] bg-ink-900">
+          <img src="../assets/products/imported/new-001.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
+          <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
+            <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">Les Silhouettes</h3>
+            <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">Des coupes minimalistes et des matières premium pour le quotidien et les grands soirs.</p>
+          </div>
+        </a>
+        <a href="/collection/parfums" class="ld-collection-card group relative overflow-hidden lg:col-span-2 lg:row-span-2 min-h-[420px] lg:min-h-[560px] bg-ink-900">
+          <img src="../assets/products/imported/new-009.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
+          <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
+            <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">Les Signatures Olfactives</h3>
+            <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">Des sillages intenses qui capturent l'espace avant même votre premier mot.</p>
+          </div>
+        </a>
+        <a href="/collection/accessoires" class="ld-collection-card group relative overflow-hidden min-h-[280px] lg:min-h-[320px] bg-ink-900">
+          <img src="../assets/products/imported/new-014.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
+          <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
+            <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">Les Finitions</h3>
+            <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">Le détail invisible qui change absolument tout à votre posture.</p>
+          </div>
+        </a>
+      </div>
+    </div>
   </section>
 
   <!-- Best Sellers -->
@@ -682,8 +738,31 @@ tailwind.config = {
 
 </main>
 
+<!-- Réassurance — pré-footer -->
+<section data-editor-section="reassurance" class="relative z-10 border-t border-ink-100 bg-cream-50 py-14 lg:py-16">
+  <div class="mx-auto max-w-[1200px] px-6 lg:px-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+      <div class="flex flex-col items-center text-center px-4 lg:px-8">
+        <div class="mb-4 text-ink-700"><svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg></div>
+        <h3 class="text-[11px] tracking-ultra uppercase text-ink-900 mb-2">Transaction Chiffrée</h3>
+        <p class="text-sm text-ink-600 leading-relaxed max-w-xs mt-2">Vos paiements sont entièrement cryptés et sécurisés par Stripe, le leader mondial de la protection bancaire.</p>
+      </div>
+      <div class="flex flex-col items-center text-center px-4 lg:px-8">
+        <div class="mb-4 text-ink-700"><svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg></div>
+        <h3 class="text-[11px] tracking-ultra uppercase text-ink-900 mb-2">Expédition Privilège</h3>
+        <p class="text-sm text-ink-600 leading-relaxed max-w-xs mt-2">Chaque commande est préparée avec soin dans un packaging premium, incluant un numéro de suivi en temps réel.</p>
+      </div>
+      <div class="flex flex-col items-center text-center px-4 lg:px-8">
+        <div class="mb-4 text-ink-700"><svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg></div>
+        <h3 class="text-[11px] tracking-ultra uppercase text-ink-900 mb-2">À votre écoute H24</h3>
+        <p class="text-sm text-ink-600 leading-relaxed max-w-xs mt-2">Une question sur une taille ou une fragrance ? Notre équipe vous répond sous 24 heures.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== FOOTER ===================== -->
-<footer data-editor-section="footer" class="relative z-10 border-t border-ink-100 bg-cream-50 py-16 mt-32">
+<footer data-editor-section="footer" class="relative z-10 border-t border-ink-100 bg-cream-50 py-16 mt-0">
   <div class="mx-auto max-w-[1600px] px-6 lg:px-12">
     <div class="flex flex-col items-center gap-8 text-center">
       <span class="serif text-2xl tracking-wide font-light">L&amp;D</span>
@@ -1620,6 +1699,12 @@ async function goToFaq(e) {
     await navigate('home');
   }
   scrollToFaqSection();
+}
+
+function scrollToManifesto(e) {
+  if (e) e.preventDefault();
+  const el = document.getElementById('ld-manifesto');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function scrollToFaqSection() {

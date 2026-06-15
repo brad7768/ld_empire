@@ -1,11 +1,12 @@
 /**
- * Jamstack build step — « bake » le site_theme (site_settings.theme) dans index/index.html.
+ * Jamstack build step — « bake » site_settings.theme + data/copywriting.json dans les pages HTML.
  *
  * Lit la ligne publiée (id = 'published') et injecte un bloc <style id="ld-theme-build">
  * dans <head>, aligné sur applyThemeFromSettings() de la vitrine.
+ * Patche les attributs data-copy / marqueurs BUILD:* depuis data/copywriting.json.
  *
  * Variables d'environnement :
- *   SUPABASE_URL, SUPABASE_ANON_KEY — requis pour fetch
+ *   SUPABASE_URL, SUPABASE_ANON_KEY — requis pour fetch theme
  *   THEME_LOCALE — locale site_settings (défaut : fr)
  *
  * Usage :
@@ -17,12 +18,54 @@ const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
 const root = path.join(__dirname, '..');
-const htmlPath = path.join(root, 'index', 'index.html');
+const COPYWRITING_PATH = path.join(root, 'data', 'copywriting.json');
 const STYLE_ID = 'ld-theme-build';
+
+const PATCH_TARGETS = [
+  path.join(root, 'index', 'index.html'),
+  path.join(root, 'success', 'index.html'),
+];
+
+const COLLECTION_LINKS = {
+  silhouettes: '/collection/pret-a-porter',
+  signatures: '/collection/parfums',
+  finitions: '/collection/accessoires',
+};
+
+const COLLECTION_IMAGES = {
+  silhouettes: '../assets/products/imported/new-001.png',
+  signatures: '../assets/products/imported/new-009.png',
+  finitions: '../assets/products/imported/new-014.png',
+};
 
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_ANON_KEY;
 const locale = process.env.THEME_LOCALE || 'fr';
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * @param {Record<string, unknown>|null|undefined} obj
+ * @param {string} dotPath
+ * @returns {unknown}
+ */
+function getByPath(obj, dotPath) {
+  if (!obj || !dotPath) return undefined;
+  return dotPath.split('.').reduce((acc, key) => {
+    if (acc == null) return undefined;
+    return acc[key];
+  }, obj);
+}
 
 /**
  * Génère le CSS à partir du JSON theme (site_settings.theme / site_theme).
@@ -59,12 +102,14 @@ function buildThemeCss(theme) {
 }
 
 /**
- * Insère ou remplace le bloc style dans le <head> de index/index.html.
+ * Insère ou remplace le bloc style dans le <head>.
  * @param {string} html
  * @param {string} css
  * @returns {string}
  */
 function injectThemeIntoHead(html, css) {
+  if (!css) return html;
+
   const block = `<style id="${STYLE_ID}">\n/* Généré au build — site_settings.theme (published) */\n${css}\n</style>`;
   const existingRe = new RegExp(`<style id="${STYLE_ID}">[\\s\\S]*?<\\/style>\\s*`, 'i');
 
@@ -74,61 +119,240 @@ function injectThemeIntoHead(html, css) {
 
   const headClose = html.indexOf('</head>');
   if (headClose === -1) {
-    throw new Error(`${htmlPath} : balise </head> introuvable.`);
+    throw new Error('Balise </head> introuvable.');
   }
 
   return `${html.slice(0, headClose)}${block}\n${html.slice(headClose)}`;
 }
 
-async function applySiteTheme() {
-  if (!url || !key) {
-    console.warn(
-      'apply-site-theme: SUPABASE_URL / SUPABASE_ANON_KEY absents — index/index.html inchangé.'
-    );
-    return;
-  }
+/**
+ * @param {Record<string, unknown>} copy
+ * @returns {string}
+ */
+function buildCollectionsGridHtml(copy) {
+  const collections = copy.collections;
+  if (!collections || typeof collections !== 'object') return '';
 
-  if (!fs.existsSync(htmlPath)) {
-    throw new Error(`Fichier vitrine introuvable : ${htmlPath}`);
-  }
+  const items = Array.isArray(collections.items) ? collections.items : [];
+  const cards = items
+    .map((item, index) => {
+      const id = String(item.id || '');
+      const href = COLLECTION_LINKS[id] || '/collection/pret-a-porter';
+      const img = COLLECTION_IMAGES[id] || '../assets/products/imported/new-001.png';
+      const spanClass =
+        index === 1
+          ? 'lg:col-span-2 lg:row-span-2 min-h-[420px] lg:min-h-[560px]'
+          : 'min-h-[280px] lg:min-h-[320px]';
 
-  const sb = createClient(url, key);
+      return `<a href="${href}" class="ld-collection-card group relative overflow-hidden ${spanClass} bg-ink-900" data-collection-id="${escapeHtml(id)}">
+        <img src="${img}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
+        <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
+        <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
+          <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">${escapeHtml(item.title || '')}</h3>
+          <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">${escapeHtml(item.desc || '')}</p>
+        </div>
+      </a>`;
+    })
+    .join('\n      ');
 
-  const { data, error } = await sb
-    .from('site_settings')
-    .select('theme, is_published')
-    .eq('id', 'published')
-    .eq('locale', locale)
-    .eq('is_published', true)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Supabase site_settings : ${error.message}`);
-  }
-
-  if (!data?.theme || typeof data.theme !== 'object' || !Object.keys(data.theme).length) {
-    console.warn(
-      `apply-site-theme: aucun theme publié pour locale="${locale}" — index/index.html inchangé.`
-    );
-    return;
-  }
-
-  const css = buildThemeCss(data.theme);
-  if (!css) {
-    console.warn('apply-site-theme: theme JSON vide ou invalide — index/index.html inchangé.');
-    return;
-  }
-
-  const html = fs.readFileSync(htmlPath, 'utf8');
-  const next = injectThemeIntoHead(html, css);
-  fs.writeFileSync(htmlPath, next, 'utf8');
-
-  console.log(
-    `apply-site-theme: theme publié (${locale}) injecté dans index/index.html (#${STYLE_ID}).`
-  );
+  return `<div class="mx-auto max-w-[1600px]">
+      <div class="reveal mb-14 lg:mb-20 text-center lg:text-left">
+        <h2 class="serif text-4xl lg:text-6xl font-light text-ink-900" data-copy="collections.title">${escapeHtml(collections.title || '')}</h2>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-4 lg:gap-5">
+      ${cards}
+      </div>
+    </div>`;
 }
 
-module.exports = { applySiteTheme, buildThemeCss, injectThemeIntoHead };
+/**
+ * @param {Record<string, unknown>} copy
+ * @returns {string}
+ */
+function buildReassuranceHtml(copy) {
+  const items = Array.isArray(copy.reassurance) ? copy.reassurance : [];
+  const icons = [
+    `<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>`,
+    `<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>`,
+    `<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>`,
+  ];
+
+  const cols = items
+    .map((item, i) => {
+      const icon = icons[i % icons.length];
+      return `<div class="flex flex-col items-center text-center px-4 lg:px-8">
+          <div class="mb-4 text-ink-700">${icon}</div>
+          <h3 class="text-[11px] tracking-ultra uppercase text-ink-900 mb-2">${escapeHtml(item.title || '')}</h3>
+          <p class="text-sm text-ink-600 leading-relaxed max-w-xs mt-2">${escapeHtml(item.desc || '')}</p>
+        </div>`;
+    })
+    .join('\n        ');
+
+  return `<div class="mx-auto max-w-[1200px] px-6 lg:px-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+        ${cols}
+      </div>
+    </div>`;
+}
+
+/**
+ * Patche data-copy (texte) et data-copy-attr (attributs) dans le HTML.
+ * @param {string} html
+ * @param {Record<string, unknown>} copy
+ * @returns {string}
+ */
+function applyCopywritingPatches(html, copy) {
+  let next = html;
+
+  next = next.replace(
+    /(<([a-zA-Z][\w:-]*)([^>]*)\sdata-copy="([^"]+)"([^>]*)>)([^<]*)(<\/\2>)/g,
+    (match, open, tag, before, copyPath, after, _content, close) => {
+      const val = getByPath(copy, copyPath);
+      if (val === undefined || val === null) return match;
+      return `${open}${escapeHtml(String(val))}${close}`;
+    }
+  );
+
+  next = next.replace(
+    /(<([a-zA-Z][\w:-]*)([^>]*)\sdata-copy-attr="([^"]+)"([^>]*)>)/g,
+    (match, open, tag, before, attrSpec, after) => {
+      const [attrName, copyPath] = attrSpec.split(':');
+      if (!attrName || !copyPath) return match;
+      const val = getByPath(copy, copyPath);
+      if (val === undefined || val === null) return match;
+      const withoutAttr = open.replace(new RegExp(`\\s${attrName}="[^"]*"`, 'i'), '');
+      return `${withoutAttr.slice(0, -1)} ${attrName}="${escapeHtml(String(val))}">`;
+    }
+  );
+
+  if (next.includes('<!-- BUILD:COLLECTIONS -->')) {
+    next = next.replace('<!-- BUILD:COLLECTIONS -->', buildCollectionsGridHtml(copy));
+  } else {
+    next = next.replace(
+      /(<section[^>]*data-editor-section="collections"[^>]*>\s*)[\s\S]*?(\s*<\/section>)/,
+      `$1${buildCollectionsGridHtml(copy)}$2`
+    );
+  }
+
+  if (next.includes('<!-- BUILD:REASSURANCE -->')) {
+    next = next.replace('<!-- BUILD:REASSURANCE -->', buildReassuranceHtml(copy));
+  } else {
+    next = next.replace(
+      /(<section[^>]*data-editor-section="reassurance"[^>]*>\s*)[\s\S]*?(\s*<\/section>)/,
+      `$1${buildReassuranceHtml(copy)}$2`
+    );
+  }
+
+  return next;
+}
+
+/**
+ * @returns {Record<string, unknown>|null}
+ */
+function loadCopywriting() {
+  if (!fs.existsSync(COPYWRITING_PATH)) {
+    console.warn(`apply-site-theme: ${COPYWRITING_PATH} introuvable — copywriting ignoré.`);
+    return null;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(COPYWRITING_PATH, 'utf8'));
+  } catch (err) {
+    throw new Error(`copywriting.json invalide : ${err.message}`);
+  }
+}
+
+/**
+ * @param {string} filePath
+ * @param {string|null} css
+ * @param {Record<string, unknown>|null} copy
+ */
+function patchHtmlFile(filePath, css, copy) {
+  if (!fs.existsSync(filePath)) {
+    console.warn(`apply-site-theme: fichier introuvable — ${filePath}`);
+    return;
+  }
+
+  let html = fs.readFileSync(filePath, 'utf8');
+  let changed = false;
+
+  if (css) {
+    const themed = injectThemeIntoHead(html, css);
+    if (themed !== html) {
+      html = themed;
+      changed = true;
+    }
+  }
+
+  if (copy) {
+    const patched = applyCopywritingPatches(html, copy);
+    if (patched !== html) {
+      html = patched;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    fs.writeFileSync(filePath, html, 'utf8');
+    console.log(`apply-site-theme: patch appliqué → ${path.relative(root, filePath)}`);
+  }
+}
+
+async function applySiteTheme() {
+  const copy = loadCopywriting();
+  let css = '';
+
+  if (url && key) {
+    const sb = createClient(url, key);
+    const { data, error } = await sb
+      .from('site_settings')
+      .select('theme, is_published')
+      .eq('id', 'published')
+      .eq('locale', locale)
+      .eq('is_published', true)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Supabase site_settings : ${error.message}`);
+    }
+
+    if (data?.theme && typeof data.theme === 'object' && Object.keys(data.theme).length) {
+      css = buildThemeCss(data.theme);
+      if (!css) {
+        console.warn('apply-site-theme: theme JSON vide ou invalide.');
+      }
+    } else {
+      console.warn(`apply-site-theme: aucun theme publié pour locale="${locale}".`);
+    }
+  } else {
+    console.warn(
+      'apply-site-theme: SUPABASE_URL / SUPABASE_ANON_KEY absents — theme Supabase ignoré.'
+    );
+  }
+
+  if (!css && !copy) {
+    console.warn('apply-site-theme: rien à appliquer.');
+    return;
+  }
+
+  for (const filePath of PATCH_TARGETS) {
+    patchHtmlFile(filePath, css, copy);
+  }
+
+  if (css) {
+    console.log(`apply-site-theme: theme publié (${locale}) injecté (#${STYLE_ID}).`);
+  }
+  if (copy) {
+    console.log('apply-site-theme: copywriting.json appliqué aux pages vitrine.');
+  }
+}
+
+module.exports = {
+  applySiteTheme,
+  buildThemeCss,
+  injectThemeIntoHead,
+  applyCopywritingPatches,
+  loadCopywriting,
+};
 
 if (require.main === module) {
   applySiteTheme().catch((err) => {

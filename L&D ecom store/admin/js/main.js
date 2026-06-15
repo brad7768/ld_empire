@@ -1,5 +1,5 @@
 import { toast } from "./ui.js";
-import { parseHash, updateTopbar, VALID_TABS, TAB_LABELS } from "./router.js";
+import { parseHash, updateTopbar, VALID_TABS, TAB_LABELS, setRouteHash } from "./router.js";
 import { wireImageDropzone } from "./media.js";
 import { createProductsModule } from "./products.js";
 import { createOrdersModule } from "./orders.js";
@@ -7,6 +7,7 @@ import { createStockModule } from "./stock.js";
 import { createCmsModule } from "./cms.js";
 import { createAnalyticsModule } from "./analytics.js";
 import { createPaletteModule } from "./palette.js";
+import { bindProductAdminForm } from "./theme-editor.js";
 
 const SESSION_CFG_KEY = "LD_SUPABASE_SESSION";
 const STORAGE_BUCKET = "product-media";
@@ -243,6 +244,15 @@ wireImageDropzone(sb, {
 });
 
 products.bindProductsEvents();
+bindProductAdminForm({
+  sb,
+  onSaved: async () => {
+    await products.refreshProductsTab();
+    await stock.refreshStockTab();
+    await analytics.refreshAnalytics();
+    setRouteHash("products", {});
+  }
+});
 orders.bindOrdersEvents();
 stock.bindStockEvents();
 cms.bindCmsEvents();

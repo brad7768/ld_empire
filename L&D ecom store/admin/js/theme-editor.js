@@ -782,3 +782,166 @@ export function createThemeEditor(ctx) {
     }
   };
 }
+
+/** Piliers catalogue — alignés sur data/copywriting.json */
+export const PRODUCT_PILLARS = [
+  { id: "silhouettes", label: "Les Silhouettes", category: "Les Silhouettes" },
+  { id: "signatures", label: "Les Signatures Olfactives", category: "Les Signatures Olfactives" },
+  { id: "finitions", label: "Les Finitions", category: "Les Finitions" },
+];
+
+/**
+ * Insère un produit + variante par défaut + stock initial via Supabase.
+ * @param {import('@supabase/supabase-js').SupabaseClient} sb
+ * @param {object} payload
+ * @returns {Promise<{ id: string }>}
+ */
+export async function insertProductWithInventory(sb, payload) {
+  const { data: product, error: pErr } = await sb
+    .from("products")
+    .insert({
+      name: payload.name,
+      slug: payload.slug,
+      category: payload.category,
+      description: payload.description || "",
+      image_urls: payload.image_urls || [],
+      active: payload.active !== false,
+      updated_at: new Date().toISOString()
+    })
+    .select("id")
+    .single();
+
+  if (pErr) throw pErr;
+
+  const sku = `LD-${payload.slug.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12) || product.id.slice(0, 8)}`;
+  const { data: variant, error: vErr } = await sb
+    .from("product_variants")
+    .insert({
+      product_id: product.id,
+      sku,
+      size: "Unique",
+      color: "Standard",
+      price_cents: payload.price_cents,
+      low_stock_threshold: 3,
+      active: true,
+      updated_at: new Date().toISOString()
+    })
+    .select("id")
+    .single();
+
+  if (vErr) throw vErr;
+
+  const { error: iErr } = await sb.from("inventory").upsert({
+    variant_id: variant.id,
+    on_hand: Math.max(0, payload.stock || 0),
+    updated_at: new Date().toISOString()
+  });
+
+  if (iErr) throw iErr;
+
+  return product;
+}
+
+/**
+ * Désactive un produit (soft delete).
+ * @param {import('@supabase/supabase-js').SupabaseClient} sb
+ * @param {string} productId
+ */
+export async function deactivateProductRecord(sb, productId) {
+  const { error } = await sb
+    .from("products")
+    .update({ active: false, updated_at: new Date().toISOString() })
+    .eq("id", productId);
+  if (error) throw error;
+}
+
+/**
+ * Lie le formulaire produit admin à Supabase (insert / toast).
+ * @param {{ sb: import('@supabase/supabase-js').SupabaseClient, onSaved?: () => Promise<void> }} opts
+ */
+export function bindProductAdminForm(opts) {
+  const previewWrap = document.getElementById("pf-image-preview-wrap");
+  const previewImg = document.getElementById("pf-image-preview");
+  const urlInput = document.getElementById("pf-image-url");
+
+  function updatePreview() {
+    const url = (urlInput?.value || "").trim();
+    if (!previewWrap || !previewImg) return;
+    if (!url) {
+      previewWrap.classList.add("hidden");
+      previewImg.removeAttribute("src");
+      return;
+    }
+    previewWrap.classList.remove("hidden");
+    previewImg.src = url;
+    previewImg.onerror = () => previewWrap.classList.add("hidden");
+  }
+
+  urlInput?.addEventListener("input", updatePreview);
+
+  document.getElementById("product-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("pf-id")?.value;
+    if (id) return;
+
+    const name = document.getElementById("pf-name")?.value.trim();
+    const category = document.getElementById("pf-category")?.value.trim();
+    const priceCad = Number(document.getElementById("pf-price")?.value);
+    const stock = Number(document.getElementById("pf-stock")?.value) || 0;
+    let slug = document.getElementById("pf-slug")?.value.trim();
+
+    if (!name || !category || !(priceCad > 0)) {
+      toast("Nom, catégorie et prix valides requis", "error");
+      return;
+    }
+
+    if (!slug) {
+      slug = name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      document.getElementById("pf-slug").value = slug;
+    }
+
+    const primaryUrl = (urlInput?.value || "").trim();
+    const extraUrls = (document.getElementById("pf-image-urls")?.value || "")
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const image_urls = [...new Set([primaryUrl, ...extraUrls].filter(Boolean))];
+
+    const submitBtn = document.getElementById("product-form-submit");
+    submitBtn?.classList.add("is-loading");
+
+    try {
+      const { data: dup } = await opts.sb.from("products").select("id").eq("slug", slug).maybeSingle();
+      if (dup) {
+        toast("Ce slug est déjà utilisé", "error");
+        return;
+      }
+
+      await insertProductWithInventory(opts.sb, {
+        name,
+        slug,
+        category,
+        description: document.getElementById("pf-description")?.value.trim() || "",
+        price_cents: Math.round(priceCad * 100),
+        stock,
+        image_urls,
+        active: document.getElementById("pf-active")?.checked !== false
+      });
+
+      toast("Produit ajouté avec succès", "success");
+      document.getElementById("pf-id").value = "";
+      e.target.reset();
+      updatePreview();
+      await opts.onSaved?.();
+    } catch (err) {
+      toast(err.message || "Erreur lors de l'insertion", "error");
+    } finally {
+      submitBtn?.classList.remove("is-loading");
+    }
+  });
+}

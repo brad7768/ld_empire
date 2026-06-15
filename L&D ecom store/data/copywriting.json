@@ -1,0 +1,43 @@
+{
+  "topBar": { "text": "Livraison offerte au Canada et en France à partir de 150 CAD." },
+  "hero": {
+    "tag": "LA COLLECTION EXCLUSIVE",
+    "title": "Le luxe n'est pas un privilège. C'est une attitude.",
+    "subtitle": "Découvrez une sélection de pièces de mode, parfums et accessoires conçus pour celles et ceux qui dictent leurs propres règles. Façonnez votre empire visuel dès aujourd'hui.",
+    "primaryCTA": "Explorer la collection",
+    "secondaryCTA": "Notre manifeste"
+  },
+  "manifesto": {
+    "title": "Derrière chaque pièce, une histoire de puissance.",
+    "text": "L&D Empire n'est pas une simple marque de mode. C'est le point de rencontre entre le raffinement intemporel et l'audace moderne. Nous croyons que ce que vous portez est la première page de votre réussite. Chaque tissu est choisi, chaque parfum est assemblé, chaque accessoire est pensé pour laisser une empreinte texturée, mémorable et unique."
+  },
+  "collections": {
+    "title": "Les Piliers de l'Empire",
+    "items": [
+      { "id": "silhouettes", "title": "Les Silhouettes", "desc": "Des coupes minimalistes et des matières premium pour le quotidien et les grands soirs." },
+      { "id": "signatures", "title": "Les Signatures Olfactives", "desc": "Des sillages intenses qui capturent l'espace avant même votre premier mot." },
+      { "id": "finitions", "title": "Les Finitions", "desc": "Le détail invisible qui change absolument tout à votre posture." }
+    ]
+  },
+  "productTemplate": {
+    "tagline": "Une pièce maîtresse pensée pour traverser les saisons sans jamais perdre de son éclat.",
+    "story": "Conçu dans un tissu de haute densité au tombé impeccable, ce modèle structure la silhouette tout en garantissant un confort absolu. Sa texture subtile capte la lumière de manière unique, offrant un contraste parfait entre sobriété et sophistication.",
+    "bullets": [
+      "Matière noble : Sélectionnée pour sa durabilité et sa douceur sur la peau.",
+      "Coupe ajustée : Conçue pour s'adapter naturellement à vos mouvements.",
+      "Polyvalence absolue : Idéal pour un look business minimaliste ou une sortie exclusive."
+    ],
+    "cta": "Ajouter à l'empire"
+  },
+  "reassurance": [
+    { "title": "Transaction Chiffrée", "desc": "Vos paiements sont entièrement cryptés et sécurisés par Stripe, le leader mondial de la protection bancaire." },
+    { "title": "Expédition Privilège", "desc": "Chaque commande est préparée avec soin dans un packaging premium, incluant un numéro de suivi en temps réel." },
+    { "title": "À votre écoute H24", "desc": "Une question sur une taille ou une fragrance ? Notre équipe vous répond sous 24 heures." }
+  ],
+  "success": {
+    "title": "Bienvenue dans l'Empire.",
+    "subtitle": "Votre commande a été validée avec succès.",
+    "message": "Un courriel contenant votre reçu et le récapitulatif détaillé de vos articles vient de vous être envoyé. Notre atelier prépare actuellement votre colis avec la plus grande attention.",
+    "cta": "Continuer l'exploration"
+  }
+}

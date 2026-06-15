@@ -422,23 +422,41 @@
                 <div class="admin-card p-5">
                   <h2 id="product-form-title" class="text-[15px] font-semibold text-stone-900 mb-4">Produit</h2>
                   <div class="space-y-3" data-field-wrap>
-                    <label for="pf-name" class="block text-[11px] font-medium text-stone-500">Nom</label>
+                    <label for="pf-name" class="block text-[11px] font-medium text-stone-500">Nom du produit</label>
                     <input id="pf-name" required class="admin-input" autocomplete="off">
-        </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <div data-field-wrap>
+                      <label for="pf-price" class="block text-[11px] font-medium text-stone-500 mb-1">Prix (CAD)</label>
+                      <input id="pf-price" type="number" min="0" step="0.01" required class="admin-input" placeholder="149.00">
+                    </div>
+                    <div data-field-wrap>
+                      <label for="pf-stock" class="block text-[11px] font-medium text-stone-500 mb-1">Stock disponible</label>
+                      <input id="pf-stock" type="number" min="0" step="1" value="0" class="admin-input">
+                    </div>
+                  </div>
                   <div class="space-y-3 mt-3" data-field-wrap>
-                    <label for="pf-description" class="block text-[11px] font-medium text-stone-500">Description</label>
+                    <label for="pf-description" class="block text-[11px] font-medium text-stone-500">Description personnalisée</label>
                     <textarea id="pf-description" class="admin-input min-h-[100px]"></textarea>
-            </div>
-          </div>
+                  </div>
+                </div>
                 <div class="admin-card p-5">
-                  <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-3">Médias</p>
-                  <div id="pf-image-dropzone" class="rounded-xl border border-dashed border-stone-300 px-6 py-8 flex flex-col items-center gap-2 cursor-pointer hover:bg-stone-50" tabindex="0" role="button">
+                  <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-3">Image</p>
+                  <div data-field-wrap>
+                    <label for="pf-image-url" class="block text-[11px] font-medium text-stone-500 mb-1">URL de l'image</label>
+                    <input id="pf-image-url" type="url" class="admin-input font-mono text-[12px]" placeholder="https://…">
+                  </div>
+                  <div id="pf-image-preview-wrap" class="mt-4 hidden">
+                    <p class="text-[11px] font-medium text-stone-500 mb-2">Aperçu</p>
+                    <img id="pf-image-preview" src="" alt="" class="w-full max-w-[220px] aspect-[3/4] object-cover rounded-lg border border-stone-200 bg-stone-100">
+                  </div>
+                  <div id="pf-image-dropzone" class="mt-4 rounded-xl border border-dashed border-stone-300 px-6 py-6 flex flex-col items-center gap-2 cursor-pointer hover:bg-stone-50" tabindex="0" role="button">
                     <input type="file" id="pf-image-files" class="hidden" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
                     <span class="text-[12px] text-stone-600">Glisser-déposer ou cliquer</span>
                     <span class="text-[11px] text-stone-400">Max 5 Mo · product-media</span>
                   </div>
                   <p id="pf-image-upload-status" class="hidden text-[12px] text-stone-500 mt-2" role="status"></p>
-                  <label for="pf-image-urls" class="block text-[11px] font-medium text-stone-500 mt-3">URLs (une par ligne)</label>
+                  <label for="pf-image-urls" class="block text-[11px] font-medium text-stone-500 mt-3">URLs supplémentaires (une par ligne)</label>
                   <textarea id="pf-image-urls" class="admin-input min-h-[72px] font-mono text-[12px]"></textarea>
                 </div>
                 <div id="product-variants-block" class="admin-card p-5 hidden">
@@ -465,14 +483,23 @@
                 <div class="admin-card p-5 space-y-3">
                   <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide">Organisation</p>
                   <div data-field-wrap>
-                    <label for="pf-category" class="block text-[11px] font-medium text-stone-500 mb-1">Catégorie</label>
-                    <input id="pf-category" required class="admin-input">
+                    <label for="pf-category" class="block text-[11px] font-medium text-stone-500 mb-1">Catégorie (pilier)</label>
+                    <select id="pf-category" required class="admin-input-select w-full bg-white">
+                      <option value="">Sélectionner…</option>
+                      <option value="Les Silhouettes">Les Silhouettes</option>
+                      <option value="Les Signatures Olfactives">Les Signatures Olfactives</option>
+                      <option value="Les Finitions">Les Finitions</option>
+                      <option value="Prêt-à-porter">Prêt-à-porter</option>
+                      <option value="Parfums">Parfums</option>
+                      <option value="Accessoires">Accessoires</option>
+                    </select>
                   </div>
                   <div data-field-wrap>
                     <label for="pf-slug" class="block text-[11px] font-medium text-stone-500 mb-1">Slug URL</label>
                     <input id="pf-slug" class="admin-input" autocomplete="off">
                   </div>
                 </div>
+                <button type="submit" id="product-form-submit" class="admin-btn-primary w-full">Ajouter le produit</button>
               </div>
           </form>
           </div>
