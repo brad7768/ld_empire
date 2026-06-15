@@ -143,6 +143,21 @@ tailwind.config = {
   .ig-carousel { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
   .ig-carousel > * { scroll-snap-align: start; flex: 0 0 min(280px, 85vw); }
 
+  /* Reviews slider */
+  .reviews-carousel { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .reviews-slide { scroll-snap-align: start; flex: 0 0 min(300px, 78vw); }
+
+  /* Manifesto texture */
+  .ld-manifesto-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.45;
+    mix-blend-mode: multiply;
+  }
+
   /* Star rating */
   .star-btn { cursor: pointer; color: #E7E5E1; transition: color 0.2s; }
   .star-btn.active, .star-btn:hover { color: #B8924A; }
@@ -404,43 +419,45 @@ tailwind.config = {
     </div>
   </section>
 
-  <!-- Manifesto -->
-  <section id="ld-manifesto" data-editor-section="manifesto" class="py-32 lg:py-52 px-6 lg:px-12 relative bg-cream-50 scroll-mt-28">
-    <div class="mx-auto max-w-4xl text-center">
-      <h2 class="reveal serif text-3xl sm:text-4xl lg:text-5xl font-light leading-[1.15] text-ink-900 mb-10 lg:mb-14" data-copy="manifesto.title">Derrière chaque pièce, une histoire de puissance.</h2>
-      <p class="reveal text-base sm:text-lg lg:text-xl font-light leading-[1.75] text-ink-600 max-w-3xl mx-auto" data-copy="manifesto.text" data-i18n="home.manifesto">L&amp;D Empire n&apos;est pas une simple marque de mode. C&apos;est le point de rencontre entre le raffinement intemporel et l&apos;audace moderne. Nous croyons que ce que vous portez est la première page de votre réussite. Chaque tissu est choisi, chaque parfum est assemblé, chaque accessoire est pensé pour laisser une empreinte texturée, mémorable et unique.</p>
+  <!-- Manifesto — asymétrique -->
+  <section id="ld-manifesto" data-editor-section="manifesto" class="py-20 lg:py-32 px-6 lg:px-12 bg-white scroll-mt-28">
+    <div class="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 xl:gap-20 items-center">
+      <div class="lg:col-span-5 order-2 lg:order-1 reveal">
+        <div class="ld-manifesto-media relative aspect-[4/5] max-w-md mx-auto lg:max-w-none overflow-hidden bg-cream-200">
+          <img src="../assets/products/imported/new-004.png" alt="" class="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async">
+        </div>
+      </div>
+      <div class="lg:col-span-6 lg:col-start-7 order-1 lg:order-2 reveal">
+        <h2 class="serif text-3xl sm:text-4xl lg:text-[2.75rem] font-light leading-[1.12] text-ink-900 mb-6 lg:mb-8 max-w-lg" data-copy="manifesto.title">Derrière chaque pièce, une histoire de puissance.</h2>
+        <p class="text-sm sm:text-base font-light leading-[1.9] text-ink-600 max-w-md" data-copy="manifesto.text" data-i18n="home.manifesto">L&amp;D Empire n&apos;est pas une simple marque de mode. C&apos;est le point de rencontre entre le raffinement intemporel et l&apos;audace moderne. Nous croyons que ce que vous portez est la première page de votre réussite. Chaque tissu est choisi, chaque parfum est assemblé, chaque accessoire est pensé pour laisser une empreinte texturée, mémorable et unique.</p>
+      </div>
     </div>
   </section>
 
   <!-- Collections — piliers -->
-  <section data-editor-section="collections" class="py-24 lg:py-36 px-6 lg:px-12 bg-white">
+  <section data-editor-section="collections" class="py-16 lg:py-24 px-6 lg:px-12 bg-white border-t border-ink-100/60">
     <div class="mx-auto max-w-[1600px]">
-      <div class="reveal mb-14 lg:mb-20 text-center lg:text-left">
-        <h2 class="serif text-4xl lg:text-6xl font-light text-ink-900" data-copy="collections.title">Les Piliers de l'Empire</h2>
-      </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-4 lg:gap-5">
-        <a href="/collection/pret-a-porter" class="ld-collection-card group relative overflow-hidden min-h-[280px] lg:min-h-[320px] bg-ink-900">
-          <img src="../assets/products/imported/new-001.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
-          <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
-          <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
-            <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">Les Silhouettes</h3>
-            <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">Des coupes minimalistes et des matières premium pour le quotidien et les grands soirs.</p>
+      <p class="reveal text-[11px] tracking-ultra uppercase text-ink-500 mb-8 lg:mb-10" data-copy="collections.title">Les Piliers de l'Empire</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
+        <a href="/collection/pret-a-porter" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="silhouettes">
+          <img src="../assets/products/imported/new-001.png" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
+          <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
+            <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">Les Silhouettes</span>
           </div>
         </a>
-        <a href="/collection/parfums" class="ld-collection-card group relative overflow-hidden lg:col-span-2 lg:row-span-2 min-h-[420px] lg:min-h-[560px] bg-ink-900">
-          <img src="../assets/products/imported/new-009.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
-          <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
-          <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
-            <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">Les Signatures Olfactives</h3>
-            <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">Des sillages intenses qui capturent l'espace avant même votre premier mot.</p>
+        <a href="/collection/parfums" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="signatures">
+          <img src="../assets/products/imported/new-009.png" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
+          <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
+            <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">Les Signatures Olfactives</span>
           </div>
         </a>
-        <a href="/collection/accessoires" class="ld-collection-card group relative overflow-hidden min-h-[280px] lg:min-h-[320px] bg-ink-900">
-          <img src="../assets/products/imported/new-014.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
-          <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
-          <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
-            <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">Les Finitions</h3>
-            <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">Le détail invisible qui change absolument tout à votre posture.</p>
+        <a href="/collection/accessoires" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="finitions">
+          <img src="../assets/products/imported/new-014.png" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+          <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
+          <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
+            <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">Les Finitions</span>
           </div>
         </a>
       </div>
@@ -448,145 +465,124 @@ tailwind.config = {
   </section>
 
   <!-- Best Sellers -->
-  <section data-editor-section="bestSellers" class="py-24 lg:py-32 px-6 lg:px-12">
+  <section data-editor-section="bestSellers" class="py-20 lg:py-28 px-6 lg:px-12 bg-cream-50/40">
     <div class="mx-auto max-w-[1600px]">
-      <div class="reveal flex items-end justify-between mb-16 lg:mb-20">
+      <div class="reveal flex items-end justify-between mb-10 lg:mb-14">
         <div>
-          <p class="text-[11px] tracking-ultra uppercase text-ink-600 mb-3" data-i18n="home.bestSellersEyebrow">Sélection boutique</p>
-          <h2 class="serif text-4xl lg:text-6xl font-light" data-i18n="home.bestSellers">Coups de cœur</h2>
+          <p class="text-[11px] tracking-ultra uppercase text-ink-500 mb-2" data-i18n="home.bestSellersEyebrow">Sélection boutique</p>
+          <h2 class="serif text-3xl lg:text-4xl font-light" data-i18n="home.bestSellers">Les incontournables</h2>
         </div>
-        <a href="#" onclick="navigate('catalog'); return false;" class="hidden sm:block text-[11px] tracking-widest uppercase link-underline" data-i18n="home.viewAll">Tout voir</a>
+        <a href="#" onclick="navigate('catalog'); return false;" class="hidden sm:block text-[10px] tracking-widest uppercase link-underline text-ink-600 hover:text-ink-900" data-i18n="home.viewAll">Tout voir</a>
       </div>
-      <div id="best-sellers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-16"></div>
+      <div id="best-sellers-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 lg:gap-x-8 gap-y-10"></div>
     </div>
   </section>
 
-  <!-- Instagram -->
-  <section data-editor-section="instagram" class="py-24 lg:py-32 px-6 lg:px-12 bg-cream-100 border-y border-ink-100">
-    <div class="mx-auto max-w-[1600px]">
-      <div class="text-center mb-12 lg:mb-16 reveal">
-        <p class="text-[11px] tracking-ultra uppercase text-gold-700 mb-4" data-i18n="home.instagramEyebrow">Sur Instagram</p>
-        <h2 class="serif text-3xl lg:text-5xl font-light mb-4" data-i18n="home.instagramTitle">La communauté L&amp;D</h2>
-        <p class="text-sm text-ink-600 max-w-xl mx-auto mb-8 leading-relaxed" data-i18n="home.instagramCopy">Tenues du jour, nouveautés et coulisses : suivez-nous pour ne rien manquer des pièces qui subliment votre style.</p>
-        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="text-[11px] tracking-widest uppercase link-underline text-ink-900" data-instagram-handle data-editor-section="instagram">@ld.boutique</a>
+  <!-- Communauté — Instagram + Newsletter -->
+  <section data-editor-section="instagram" class="py-20 lg:py-28 px-6 lg:px-12 bg-white border-t border-ink-100/60">
+    <div class="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+      <div class="lg:col-span-7 reveal">
+        <p class="text-[11px] tracking-ultra uppercase text-ink-500 mb-3" data-i18n="home.instagramEyebrow">Sur Instagram</p>
+        <h2 class="serif text-3xl lg:text-4xl font-light text-ink-900 mb-3" data-i18n="home.instagramTitle">La communauté L&amp;D</h2>
+        <p class="text-sm font-light text-ink-600 max-w-md mb-6 leading-relaxed" data-i18n="home.instagramCopy">Tenues du jour, nouveautés et coulisses — suivez-nous au quotidien.</p>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="inline-block text-[10px] tracking-widest uppercase link-underline text-ink-800 mb-8" data-instagram-handle data-editor-section="instagram">@ld.boutique</a>
+        <div id="instagram-carousel" class="ig-carousel flex gap-3 overflow-x-auto pb-2 no-scrollbar" aria-label="Aperçu Instagram"></div>
       </div>
-      <div id="instagram-carousel" class="ig-carousel flex gap-4 overflow-x-auto pb-2 reveal" aria-label="Aperçu Instagram"></div>
-    </div>
-  </section>
-
-  <!-- Avis clients -->
-  <section data-editor-section="reviews" class="py-24 lg:py-32 px-6 lg:px-12">
-    <div class="mx-auto max-w-[960px]">
-      <div class="text-center mb-14 lg:mb-16 reveal">
-        <p class="text-[11px] tracking-ultra uppercase text-gold-700 mb-4" data-i18n="home.reviewsEyebrow">Témoignages</p>
-        <h2 class="serif text-3xl lg:text-5xl font-light mb-4" data-i18n="home.reviewsTitle">Ce que nos clientes disent</h2>
-        <p id="global-reviews-metrics" class="text-sm text-ink-700 mb-4"></p>
-        <p class="text-sm text-ink-600 max-w-lg mx-auto leading-relaxed" data-i18n="home.reviewsIntro">Votre avis compte : partagez votre expérience avec L&amp;D pour guider la communauté.</p>
-      </div>
-      <div id="home-reviews-fetch-banner" class="hidden mb-8 max-w-lg mx-auto rounded-md border border-gold-700/25 bg-cream-100 p-4 text-sm text-ink-800 shadow-sm">
-        <p id="home-reviews-fetch-msg" class="mb-3"></p>
-        <button type="button" onclick="retryGlobalReviewsLoad()" class="touch-target text-[11px] tracking-widest uppercase border border-ink-900 px-4 py-2 hover:bg-ink-900 hover:text-cream-50 transition-colors" data-i18n="reviewsBanner.retry">Réessayer</button>
-      </div>
-      <div id="home-reviews-list" class="space-y-8 mb-14"></div>
-      <div class="border border-ink-100 bg-cream-50 p-8 lg:p-10 reveal">
-        <h3 class="serif text-xl lg:text-2xl font-light mb-6 text-center" data-i18n="home.reviewsFormTitle">Laisser un avis</h3>
-        <form id="home-review-form" onsubmit="submitHomeReview(event)" class="space-y-6 max-w-md mx-auto">
-          <div>
-            <label class="text-[11px] tracking-ultra uppercase text-ink-600 mb-2 block" for="home-review-name" data-i18n="home.reviewsName">Prénom ou pseudo</label>
-            <input type="text" id="home-review-name" maxlength="80" class="w-full bg-transparent border-b border-ink-200 pb-3 text-sm focus:outline-none focus:border-ink-900" autocomplete="name">
-          </div>
-          <div>
-            <span class="text-[11px] tracking-ultra uppercase text-ink-600 mb-2 block" data-i18n="home.reviewsStars">Note</span>
-            <div id="home-star-rating" class="flex gap-2 justify-center" role="group" aria-label="Note sur 5"></div>
-          </div>
-          <div>
-            <label class="text-[11px] tracking-ultra uppercase text-ink-600 mb-2 block" for="home-review-text" data-i18n="home.reviewsComment">Commentaire</label>
-            <textarea id="home-review-text" required rows="4" maxlength="600" class="w-full bg-cream-100 border border-ink-100 p-4 text-sm focus:outline-none focus:border-gold-500 resize-y min-h-[100px]"></textarea>
-          </div>
-          <button type="submit" class="w-full bg-ink-900 text-cream-50 h-12 text-[11px] tracking-ultra uppercase hover:bg-gold-600 transition-colors" data-i18n="home.reviewsSubmit">Publier mon avis</button>
-          <p id="home-review-feedback" class="text-center text-xs text-gold-700 hidden" role="status" aria-live="polite"></p>
+      <div data-editor-section="newsletter" class="lg:col-span-5 lg:col-start-8 reveal lg:pt-12">
+        <p class="text-[11px] tracking-ultra uppercase text-ink-500 mb-3" data-i18n="home.newsletterEyebrow">Newsletter</p>
+        <h3 class="serif text-2xl lg:text-3xl font-light text-ink-900 mb-4" data-i18n="home.newsletterTitle">Restez inspirées</h3>
+        <p class="text-sm font-light leading-relaxed text-ink-600 mb-8 max-w-sm" data-i18n="home.newsletterCopy">Nouveautés, restocks et ventes privées — directement dans votre boîte mail.</p>
+        <form onsubmit="handleNewsletter(event)" class="flex max-w-sm border-b border-ink-300 focus-within:border-ink-900 transition-colors">
+          <label for="newsletter-email" class="sr-only">Adresse e-mail</label>
+          <input id="newsletter-email" type="email" required placeholder="Adresse courriel" data-i18n-placeholder="home.newsletterPlaceholder" class="flex-1 bg-transparent pb-3 px-0 text-sm font-light focus:outline-none placeholder:text-ink-400">
+          <button type="submit" id="newsletter-btn" class="text-[10px] tracking-ultra uppercase pb-3 pl-4 text-ink-900 hover:text-gold-600 transition-colors shrink-0" data-i18n="home.subscribe">S'abonner</button>
         </form>
       </div>
     </div>
   </section>
 
-  <!-- FAQ -->
-  <section id="faq" data-editor-section="faq" class="py-24 lg:py-32 px-6 lg:px-12 bg-cream-100 border-y border-ink-100 scroll-mt-28">
-    <div class="mx-auto max-w-[960px]">
-      <div class="text-center mb-14 lg:mb-16 reveal">
-        <p class="text-[11px] tracking-ultra uppercase text-gold-700 mb-4" data-i18n="faq.eyebrow">Avant de commander</p>
-        <h2 class="serif text-3xl lg:text-5xl font-light mb-4" data-i18n="faq.title">Questions fréquentes</h2>
-        <p class="text-sm text-ink-600 max-w-lg mx-auto leading-relaxed" data-i18n="faq.intro">Livraison, tailles, retours et paiement — tout ce qu'il faut savoir pour commander en toute confiance.</p>
+  <!-- Avis clients -->
+  <section data-editor-section="reviews" class="py-20 lg:py-24 px-6 lg:px-12 bg-cream-50/30 border-t border-ink-100/60">
+    <div class="mx-auto max-w-[1600px]">
+      <div class="reveal flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 lg:mb-10">
+        <div>
+          <p class="text-[11px] tracking-ultra uppercase text-ink-500 mb-2" data-i18n="home.reviewsEyebrow">Témoignages</p>
+          <h2 class="serif text-2xl lg:text-3xl font-light text-ink-900" data-i18n="home.reviewsTitle">Ce que nos clientes disent</h2>
+        </div>
+        <p id="global-reviews-metrics" class="text-xs font-light text-ink-500"></p>
       </div>
-      <div class="reveal border-t border-ink-100 bg-cream-50">
+      <div id="home-reviews-fetch-banner" class="hidden mb-6 max-w-lg rounded-md border border-gold-700/25 bg-cream-100 p-4 text-sm text-ink-800">
+        <p id="home-reviews-fetch-msg" class="mb-3"></p>
+        <button type="button" onclick="retryGlobalReviewsLoad()" class="touch-target text-[10px] tracking-widest uppercase border border-ink-900 px-4 py-2 hover:bg-ink-900 hover:text-cream-50 transition-colors" data-i18n="reviewsBanner.retry">Réessayer</button>
+      </div>
+      <div id="home-reviews-list" class="reviews-carousel flex gap-4 lg:gap-5 overflow-x-auto pb-3 no-scrollbar" aria-label="Témoignages clients"></div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" data-editor-section="faq" class="py-20 lg:py-28 px-6 lg:px-12 bg-white scroll-mt-28">
+    <div class="mx-auto max-w-3xl">
+      <div class="text-center mb-10 lg:mb-12 reveal">
+        <p class="text-[11px] tracking-ultra uppercase text-ink-500 mb-3" data-i18n="faq.eyebrow">Avant de commander</p>
+        <h2 class="serif text-2xl lg:text-3xl font-light mb-3 text-ink-900" data-i18n="faq.title">Questions fréquentes</h2>
+        <p class="text-sm font-light text-ink-600 leading-relaxed" data-i18n="faq.intro">Livraison, tailles, retours et paiement — tout ce qu'il faut savoir pour commander en toute confiance.</p>
+      </div>
+      <div class="reveal border-t border-ink-100">
         <div class="border-b border-ink-100">
-          <button type="button" onclick="toggleAccordion('faq-acc-1')" aria-expanded="false" aria-controls="faq-acc-1" class="flex items-center justify-between w-full px-6 py-5 text-left lg:px-8">
+          <button type="button" onclick="toggleAccordion('faq-acc-1')" aria-expanded="false" aria-controls="faq-acc-1" class="flex items-center justify-between w-full py-4 text-left">
             <span class="text-[11px] tracking-ultra uppercase" data-i18n="faq.q1">Commande &amp; paiement</span>
             <svg class="h-4 w-4 shrink-0 text-ink-600 transition-transform" id="faq-acc-1-icon" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           </button>
           <div class="accordion-content" id="faq-acc-1">
-            <div class="px-6 pb-6 text-sm leading-relaxed text-ink-600 lg:px-8" data-i18n="faq.a1">Les paiements sont traités de façon sécurisée via Stripe (Visa, Mastercard, Amex). Vous recevrez une confirmation par e-mail après validation de la commande.</div>
+            <div class="px-0 pb-4 text-sm font-light leading-relaxed text-ink-600" data-i18n="faq.a1">Les paiements sont traités de façon sécurisée via Stripe (Visa, Mastercard, Amex). Vous recevrez une confirmation par e-mail après validation de la commande.</div>
           </div>
         </div>
         <div class="border-b border-ink-100">
-          <button type="button" onclick="toggleAccordion('faq-acc-2')" aria-expanded="false" aria-controls="faq-acc-2" class="flex items-center justify-between w-full px-6 py-5 text-left lg:px-8">
+          <button type="button" onclick="toggleAccordion('faq-acc-2')" aria-expanded="false" aria-controls="faq-acc-2" class="flex items-center justify-between w-full py-4 text-left">
             <span class="text-[11px] tracking-ultra uppercase" data-i18n="faq.q2">Livraison &amp; délais</span>
             <svg class="h-4 w-4 shrink-0 text-ink-600 transition-transform" id="faq-acc-2-icon" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           </button>
           <div class="accordion-content" id="faq-acc-2">
-            <div class="px-6 pb-6 text-sm leading-relaxed text-ink-600 lg:px-8" data-i18n="faq.a2">Commandes préparées sous 1 à 3 jours ouvrables. Livraison standard au Québec et au Canada : 3 à 7 jours ouvrables. Détails complets sur la page Livraison &amp; retours.</div>
+            <div class="px-0 pb-4 text-sm font-light leading-relaxed text-ink-600" data-i18n="faq.a2">Commandes préparées sous 1 à 3 jours ouvrables. Livraison standard au Québec et au Canada : 3 à 7 jours ouvrables. Détails complets sur la page Livraison &amp; retours.</div>
           </div>
         </div>
         <div class="border-b border-ink-100">
-          <button type="button" onclick="toggleAccordion('faq-acc-3')" aria-expanded="false" aria-controls="faq-acc-3" class="flex items-center justify-between w-full px-6 py-5 text-left lg:px-8">
+          <button type="button" onclick="toggleAccordion('faq-acc-3')" aria-expanded="false" aria-controls="faq-acc-3" class="flex items-center justify-between w-full py-4 text-left">
             <span class="text-[11px] tracking-ultra uppercase" data-i18n="faq.q3">Retours &amp; échanges</span>
             <svg class="h-4 w-4 shrink-0 text-ink-600 transition-transform" id="faq-acc-3-icon" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           </button>
           <div class="accordion-content" id="faq-acc-3">
-            <div class="px-6 pb-6 text-sm leading-relaxed text-ink-600 lg:px-8" data-i18n="faq.a3">Articles non portés, dans leur état d'origine, retournables sous 14 jours. Contactez-nous avant tout renvoi via la page Contact.</div>
+            <div class="px-0 pb-4 text-sm font-light leading-relaxed text-ink-600" data-i18n="faq.a3">Articles non portés, dans leur état d'origine, retournables sous 14 jours. Contactez-nous avant tout renvoi via la page Contact.</div>
           </div>
         </div>
         <div class="border-b border-ink-100">
-          <button type="button" onclick="toggleAccordion('faq-acc-4')" aria-expanded="false" aria-controls="faq-acc-4" class="flex items-center justify-between w-full px-6 py-5 text-left lg:px-8">
+          <button type="button" onclick="toggleAccordion('faq-acc-4')" aria-expanded="false" aria-controls="faq-acc-4" class="flex items-center justify-between w-full py-4 text-left">
             <span class="text-[11px] tracking-ultra uppercase" data-i18n="faq.q4">Tailles &amp; guide</span>
             <svg class="h-4 w-4 shrink-0 text-ink-600 transition-transform" id="faq-acc-4-icon" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           </button>
           <div class="accordion-content" id="faq-acc-4">
-            <div class="px-6 pb-6 text-sm leading-relaxed text-ink-600 lg:px-8" data-i18n="faq.a4">Chaque fiche produit indique les tailles disponibles. En cas de doute, privilégiez la taille supérieure pour les coupes ajustées. Pour les chaussures, référez-vous à la pointure EU.</div>
+            <div class="px-0 pb-4 text-sm font-light leading-relaxed text-ink-600" data-i18n="faq.a4">Chaque fiche produit indique les tailles disponibles. En cas de doute, privilégiez la taille supérieure pour les coupes ajustées. Pour les chaussures, référez-vous à la pointure EU.</div>
           </div>
         </div>
         <div class="border-b border-ink-100">
-          <button type="button" onclick="toggleAccordion('faq-acc-5')" aria-expanded="false" aria-controls="faq-acc-5" class="flex items-center justify-between w-full px-6 py-5 text-left lg:px-8">
+          <button type="button" onclick="toggleAccordion('faq-acc-5')" aria-expanded="false" aria-controls="faq-acc-5" class="flex items-center justify-between w-full py-4 text-left">
             <span class="text-[11px] tracking-ultra uppercase" data-i18n="faq.q5">Parfums &amp; authenticité</span>
             <svg class="h-4 w-4 shrink-0 text-ink-600 transition-transform" id="faq-acc-5-icon" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           </button>
           <div class="accordion-content" id="faq-acc-5">
-            <div class="px-6 pb-6 text-sm leading-relaxed text-ink-600 lg:px-8" data-i18n="faq.a5">Nos eaux de parfum Collection Privée sont présentées dans leur coffret d'origine. Conservez-les à l'abri de la chaleur et de la lumière directe.</div>
+            <div class="px-0 pb-4 text-sm font-light leading-relaxed text-ink-600" data-i18n="faq.a5">Nos eaux de parfum Collection Privée sont présentées dans leur coffret d'origine. Conservez-les à l'abri de la chaleur et de la lumière directe.</div>
           </div>
         </div>
         <div class="border-b border-ink-100">
-          <button type="button" onclick="toggleAccordion('faq-acc-6')" aria-expanded="false" aria-controls="faq-acc-6" class="flex items-center justify-between w-full px-6 py-5 text-left lg:px-8">
+          <button type="button" onclick="toggleAccordion('faq-acc-6')" aria-expanded="false" aria-controls="faq-acc-6" class="flex items-center justify-between w-full py-4 text-left">
             <span class="text-[11px] tracking-ultra uppercase" data-i18n="faq.q6">Suivi de commande</span>
             <svg class="h-4 w-4 shrink-0 text-ink-600 transition-transform" id="faq-acc-6-icon" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           </button>
           <div class="accordion-content" id="faq-acc-6">
-            <div class="px-6 pb-6 text-sm leading-relaxed text-ink-600 lg:px-8" data-i18n="faq.a6">Un numéro de suivi vous est transmis par e-mail dès l'expédition. Questions : concierge@ld-mode.com</div>
+            <div class="px-0 pb-4 text-sm font-light leading-relaxed text-ink-600" data-i18n="faq.a6">Un numéro de suivi vous est transmis par e-mail dès l'expédition. Questions : concierge@ld-mode.com</div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Newsletter -->
-  <section data-editor-section="newsletter" class="py-24 lg:py-32 px-6 lg:px-12">
-    <div class="mx-auto max-w-2xl text-center">
-      <h2 class="reveal serif text-3xl lg:text-5xl font-light mb-5" data-i18n="home.newsletterTitle">Restez inspirées</h2>
-      <p class="reveal text-sm leading-relaxed text-ink-600 mb-10 max-w-md mx-auto" data-i18n="home.newsletterCopy">Recevez en avant-première les nouveautés L&amp;D, nos inspirations tenues et les ventes privées réservées aux abonnées.</p>
-      <form onsubmit="handleNewsletter(event)" class="reveal flex max-w-md mx-auto">
-        <label for="newsletter-email" class="sr-only">Adresse e-mail</label>
-        <input id="newsletter-email" type="email" required placeholder="Adresse courriel" data-i18n-placeholder="home.newsletterPlaceholder" class="flex-1 bg-transparent border-b border-ink-300 pb-3 px-1 text-sm focus:outline-none focus:border-ink-900 transition-colors placeholder:text-ink-500">
-        <button type="submit" id="newsletter-btn" class="text-[11px] tracking-ultra uppercase border-b border-ink-900 pb-3 ml-6 hover:text-gold-500 hover:border-gold-500 transition-colors" data-i18n="home.subscribe">S'abonner</button>
-      </form>
     </div>
   </section>
 </div>
@@ -807,21 +803,14 @@ const dict = {
       bestSellersEyebrow: "Best-sellers L&D",
       bestSellers: "Les incontournables",
       viewAll: "Tout voir",
-      instagramEyebrow: "Suivez nos looks en direct",
-      instagramTitle: "Rejoignez l'univers L&D",
-      instagramCopy: "Retrouvez les nouveautés portées, inspirations et sélections exclusives sur Instagram.",
+      instagramEyebrow: "Sur Instagram",
+      instagramTitle: "La communauté L&D",
+      instagramCopy: "Tenues du jour, nouveautés et coulisses — suivez-nous au quotidien.",
       reviewsEyebrow: "Témoignages",
       reviewsTitle: "Ce que nos clientes disent",
-      reviewsIntro: "Votre avis compte : partagez votre expérience avec L&D pour guider la communauté.",
-      reviewsFormTitle: "Laisser un avis",
-      reviewsName: "Prénom ou pseudo",
-      reviewsStars: "Note",
-      reviewsComment: "Commentaire",
-      reviewsSubmit: "Publier mon avis",
-      reviewsThanks: "Merci ! Votre avis a été enregistré.",
-      reviewsStarError: "Veuillez sélectionner une note.",
-      newsletterTitle: "Rejoignez l'univers L&D",
-      newsletterCopy: "Recevez en avant-première nos nouveautés, restocks et offres privées.",
+      newsletterEyebrow: "Newsletter",
+      newsletterTitle: "Restez inspirées",
+      newsletterCopy: "Nouveautés, restocks et ventes privées — directement dans votre boîte mail.",
       newsletterPlaceholder: "Votre e-mail",
       subscribe: "Je m'inscris"
     },
@@ -958,22 +947,15 @@ const dict = {
       bestSellersEyebrow: "L&D best sellers",
       bestSellers: "Most wanted picks",
       viewAll: "View all",
-      instagramEyebrow: "See our looks live",
-      instagramTitle: "Join the L&D world",
-      instagramCopy: "Find styled drops, inspiration, and exclusive selections on Instagram.",
+      instagramEyebrow: "On Instagram",
+      instagramTitle: "The L&D community",
+      instagramCopy: "Daily looks, new arrivals, and behind the scenes — follow along.",
       reviewsEyebrow: "Reviews",
       reviewsTitle: "What our customers say",
-      reviewsIntro: "Your feedback matters — share your L&D experience to help others shop with confidence.",
-      reviewsFormTitle: "Write a review",
-      reviewsName: "First name or nickname",
-      reviewsStars: "Rating",
-      reviewsComment: "Comment",
-      reviewsSubmit: "Post my review",
-      reviewsThanks: "Thank you — your review has been saved.",
-      reviewsStarError: "Please select a star rating.",
-      newsletterTitle: "Join the L&D world",
-      newsletterCopy: "Get early access to new drops, restocks, and private offers.",
-      newsletterPlaceholder: "Your email", subscribe: "Join now"
+      newsletterEyebrow: "Newsletter",
+      newsletterTitle: "Stay inspired",
+      newsletterCopy: "New drops, restocks, and private sales — straight to your inbox.",
+      newsletterPlaceholder: "Your email", subscribe: "Subscribe"
     },
     catalog: {
       title: "Our shop",
@@ -1410,15 +1392,15 @@ function starsHTML(n) {
 function reviewCard(r, showVerified) {
   const date = r.date ? new Date(r.date).toLocaleDateString(state.locale === 'fr' ? 'fr-CA' : 'en-CA') : '';
   return `
-    <article class="border-b border-ink-100 pb-8 last:border-0 last:pb-0">
-      <div class="flex items-start justify-between gap-4 mb-3">
+    <article class="reviews-slide border border-ink-100/80 bg-white p-6 lg:p-8">
+      <div class="flex items-start justify-between gap-4 mb-4">
         <div>
-          <p class="font-medium text-ink-900">${escapeHtml(r.name || '—')}</p>
-          <p class="text-xs text-muted-wcag mt-1">${starsHTML(r.stars)} · ${date}</p>
+          <p class="text-[13px] font-light text-ink-900">${escapeHtml(r.name || '—')}</p>
+          <p class="text-[11px] text-ink-400 mt-1.5">${starsHTML(r.stars)} · ${date}</p>
         </div>
         ${showVerified ? `<span class="text-[9px] tracking-widest uppercase text-gold-700 whitespace-nowrap">${t('product.verifiedBuyer')}</span>` : ''}
       </div>
-      <p class="text-sm text-ink-700 leading-relaxed">${escapeHtml(r.text)}</p>
+      <p class="text-sm font-light text-ink-600 leading-relaxed line-clamp-4">${escapeHtml(r.text)}</p>
     </article>`;
 }
 
@@ -1427,7 +1409,7 @@ function renderHomeReviewsList() {
   if (!el) return;
   const reviews = loadGlobalReviews().sort((a, b) => new Date(b.date) - new Date(a.date));
   if (reviews.length === 0) {
-    el.innerHTML = `<p class="text-center text-sm text-muted-wcag">${state.locale === 'fr' ? 'Aucun avis pour le moment — soyez la première à partager votre expérience !' : 'No reviews yet — be the first to share yours!'}</p>`;
+    el.innerHTML = `<p class="text-sm font-light text-ink-400">${state.locale === 'fr' ? 'Les premiers avis arrivent bientôt.' : 'First reviews coming soon.'}</p>`;
     updateReviewsFetchBanner();
     return;
   }
@@ -1744,7 +1726,6 @@ async function renderCurrentPage() {
     renderBestSellers();
     await refreshGlobalReviewsCache();
     renderHomeReviewsList();
-    initHomeStarRating();
     initInstagramCarousel();
     initHeroCarousel();
   }
@@ -2047,6 +2028,27 @@ document.body.addEventListener('click', (e) => {
 });
 
 // ===================== PRODUCT CARD =====================
+function minimalProductCardHTML(p, index = 0) {
+  const img = productHasImages(p)
+    ? `<img src="${p.images[0]}" alt="${escapeHtml(p.name[state.locale])}" class="max-h-[88%] max-w-[88%] object-contain transition-transform duration-700 ease-out group-hover:scale-[1.03]">`
+    : '';
+  return `
+    <article class="reveal group" style="transition-delay:${index * 60}ms">
+      <a href="${productPageUrl(p.slug)}" class="relative flex aspect-square items-center justify-center overflow-hidden bg-cream-100/90 mb-4 block">
+        ${img}
+      </a>
+      <div class="space-y-1">
+        <h3 class="text-[13px] font-light tracking-wide text-ink-900 leading-snug">
+          <a href="${productPageUrl(p.slug)}" class="hover:text-ink-600 transition-colors">${escapeHtml(p.name[state.locale])}</a>
+        </h3>
+        <p class="text-[12px] font-light text-ink-500">${formatPrice(p.price)}</p>
+        <button type="button" onclick="event.preventDefault(); quickAdd('${p.id}');" class="mt-3 text-[10px] tracking-widest uppercase text-ink-800 border-b border-ink-300 pb-0.5 hover:border-ink-900 transition-colors" id="qa-${p.id}">
+          ${t('catalog.addToBag')}
+        </button>
+      </div>
+    </article>`;
+}
+
 function productCardHTML(p, index = 0, opts = {}) {
   const wl = state.wishlist.includes(p.id);
   const omitImages = opts.omitImages === true;
@@ -2097,8 +2099,16 @@ function quickAdd(productId) {
 // ===================== HOME — BEST SELLERS =====================
 function renderBestSellers() {
   const grid = document.getElementById('best-sellers-grid');
-  const bs = products.filter(p => p.bestseller).slice(0, 3);
-  grid.innerHTML = bs.map((p, i) => productCardHTML(p, i, { omitImages: !['sac-box-espresso', 'sneaker-studio', 'blazer-lin'].includes(p.slug) })).join('');
+  if (!grid) return;
+  let bs = products.filter(p => p.bestseller).slice(0, 4);
+  if (bs.length < 4) {
+    const seen = new Set(bs.map(p => p.id));
+    for (const p of products) {
+      if (bs.length >= 4) break;
+      if (!seen.has(p.id)) { bs.push(p); seen.add(p.id); }
+    }
+  }
+  grid.innerHTML = bs.map((p, i) => minimalProductCardHTML(p, i)).join('');
 }
 
 // ===================== CATALOG =====================
@@ -3036,7 +3046,6 @@ async function handleSignOut() {
   initAccountDrawer();
   renderBestSellers();
   renderHomeReviewsList();
-  initHomeStarRating();
   initInstagramCarousel();
   initHeroCarousel();
   updateCartBadge();

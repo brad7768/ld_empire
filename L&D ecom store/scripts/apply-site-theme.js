@@ -135,32 +135,25 @@ function buildCollectionsGridHtml(copy) {
 
   const items = Array.isArray(collections.items) ? collections.items : [];
   const cards = items
-    .map((item, index) => {
+    .map((item) => {
       const id = String(item.id || '');
       const href = COLLECTION_LINKS[id] || '/collection/pret-a-porter';
       const img = COLLECTION_IMAGES[id] || '../assets/products/imported/new-001.png';
-      const spanClass =
-        index === 1
-          ? 'lg:col-span-2 lg:row-span-2 min-h-[420px] lg:min-h-[560px]'
-          : 'min-h-[280px] lg:min-h-[320px]';
 
-      return `<a href="${href}" class="ld-collection-card group relative overflow-hidden ${spanClass} bg-ink-900" data-collection-id="${escapeHtml(id)}">
-        <img src="${img}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" loading="lazy" decoding="async">
-        <div class="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/20 to-transparent"></div>
-        <div class="relative z-10 flex h-full flex-col justify-end p-8 lg:p-10">
-          <h3 class="serif text-2xl lg:text-4xl font-light text-cream-50 mb-2">${escapeHtml(item.title || '')}</h3>
-          <p class="text-sm text-cream-50/75 max-w-sm leading-relaxed">${escapeHtml(item.desc || '')}</p>
+      return `<a href="${href}" class="ld-collection-card group relative block overflow-hidden aspect-[3/4] bg-cream-200" data-collection-id="${escapeHtml(id)}">
+        <img src="${img}" alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105" loading="lazy" decoding="async">
+        <div class="absolute inset-0 bg-ink-900/5 group-hover:bg-ink-900/25 transition-colors duration-500"></div>
+        <div class="absolute inset-0 flex items-end justify-center pb-8 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
+          <span class="text-[10px] tracking-ultra uppercase font-light text-cream-50 drop-shadow-sm">${escapeHtml(item.title || '')}</span>
         </div>
       </a>`;
     })
-    .join('\n      ');
+    .join('\n        ');
 
   return `<div class="mx-auto max-w-[1600px]">
-      <div class="reveal mb-14 lg:mb-20 text-center lg:text-left">
-        <h2 class="serif text-4xl lg:text-6xl font-light text-ink-900" data-copy="collections.title">${escapeHtml(collections.title || '')}</h2>
-      </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-4 lg:gap-5">
-      ${cards}
+      <p class="reveal text-[11px] tracking-ultra uppercase text-ink-500 mb-8 lg:mb-10" data-copy="collections.title">${escapeHtml(collections.title || '')}</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
+        ${cards}
       </div>
     </div>`;
 }
@@ -255,7 +248,6 @@ const DEFAULT_HOME_SECTION_ORDER = [
   'instagram',
   'reviews',
   'faq',
-  'newsletter',
 ];
 
 /**

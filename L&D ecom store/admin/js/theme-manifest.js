@@ -6,8 +6,7 @@ export const HOME_SECTION_ORDER = [
   "bestSellers",
   "instagram",
   "reviews",
-  "faq",
-  "newsletter"
+  "faq"
 ];
 
 /** Pages statiques éditables via cms_content (Section B du menu éditeur). */
