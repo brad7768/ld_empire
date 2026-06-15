@@ -3,6 +3,7 @@
 export const HOME_SECTION_ORDER = [
   "hero",
   "manifesto",
+  "collections",
   "bestSellers",
   "instagram",
   "reviews",
@@ -93,6 +94,14 @@ export const THEME_MANIFEST = {
               ]
             }
           ]
+        },
+        {
+          id: "collections",
+          label: "Collections",
+          icon: "grid",
+          selector: '[data-editor-section="collections"]',
+          page: "home",
+          fields: [{ key: "title", label: "Titre de section", type: "text" }]
         },
         {
           id: "bestSellers",

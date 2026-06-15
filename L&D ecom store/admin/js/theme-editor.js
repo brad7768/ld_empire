@@ -23,7 +23,8 @@ import {
   showThemeStudio,
   initThemeStudioChrome,
   updateUndoRedoButtons,
-  orderArrowSvg
+  orderArrowSvg,
+  dragHandleSvg
 } from "./theme-studio-ui.js";
 
 const STORAGE_BUCKET = "product-media";
@@ -249,6 +250,82 @@ export function createThemeEditor(ctx) {
       .sort((a, b) => a.key.localeCompare(b.key));
   }
 
+  function getSortedHomeSections() {
+    const pageSections = listSectionsForPage("home");
+    const order = sectionsMeta.order || [...HOME_SECTION_ORDER];
+    return [...pageSections]
+      .filter((s) => !s.global && HOME_SECTION_ORDER.includes(s.id))
+      .sort((a, b) => {
+        const ia = order.indexOf(a.id);
+        const ib = order.indexOf(b.id);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      });
+  }
+
+  function reorderHomeSectionToIndex(sectionId, targetIndex) {
+    const sorted = getSortedHomeSections();
+    const ids = sorted.map((s) => s.id);
+    const fromIndex = ids.indexOf(sectionId);
+    if (fromIndex < 0 || targetIndex < 0 || targetIndex >= ids.length || fromIndex === targetIndex) return;
+
+    pushHistory();
+    ids.splice(fromIndex, 1);
+    ids.splice(targetIndex, 0, sectionId);
+    sectionsMeta.order = ids;
+    bridge?.patchSectionsMeta(sectionsMeta);
+    markDirty();
+
+    const tree = document.getElementById("theme-editor-tree");
+    tree?.querySelector(`[data-tree-row="${sectionId}"]`)?.classList.add("is-reordering");
+    renderTree();
+    requestAnimationFrame(() => {
+      tree?.querySelector(`[data-tree-row="${sectionId}"]`)?.classList.remove("is-reordering");
+    });
+  }
+
+  function bindHomeSectionDragDrop(tree) {
+    if (!tree) return;
+    let dragSectionId = null;
+
+    tree.querySelectorAll("[data-drag-section]").forEach((handle) => {
+      handle.addEventListener("dragstart", (e) => {
+        dragSectionId = handle.dataset.dragSection;
+        handle.closest("[data-tree-row]")?.classList.add("is-dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", dragSectionId);
+      });
+      handle.addEventListener("dragend", () => {
+        tree.querySelectorAll(".is-dragging").forEach((el) => el.classList.remove("is-dragging"));
+        tree.querySelectorAll(".is-drag-over").forEach((el) => el.classList.remove("is-drag-over"));
+        dragSectionId = null;
+      });
+    });
+
+    tree.querySelectorAll("[data-tree-row]").forEach((row) => {
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (row.dataset.treeRow && row.dataset.treeRow !== dragSectionId) {
+          row.classList.add("is-drag-over");
+        }
+      });
+      row.addEventListener("dragleave", (e) => {
+        if (!row.contains(e.relatedTarget)) row.classList.remove("is-drag-over");
+      });
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        row.classList.remove("is-drag-over");
+        const fromId = e.dataTransfer.getData("text/plain") || dragSectionId;
+        const toId = row.dataset.treeRow;
+        if (!fromId || !toId || fromId === toId) return;
+        const sorted = getSortedHomeSections();
+        const toIdx = sorted.findIndex((s) => s.id === toId);
+        if (toIdx < 0) return;
+        reorderHomeSectionToIndex(fromId, toIdx);
+      });
+    });
+  }
+
   function renderTreeSectionBtn(s, opts = {}) {
     const hidden = sectionsMeta.hidden?.includes(s.id);
     const selected = s.id === activeSectionId && treeView === "sections" && !activeStaticPageId && !activeCmsKey;
@@ -272,6 +349,7 @@ export function createThemeEditor(ctx) {
     const canDown = index < total - 1;
 
     return `<div class="theme-studio-tree-row ${selected ? "is-selected" : ""} ${hidden ? "is-hidden-section" : ""}" data-tree-row="${s.id}">
+      <span class="theme-studio-drag-handle" draggable="true" data-drag-section="${s.id}" role="button" tabindex="0" title="Glisser pour réordonner" aria-label="Glisser ${escapeHtml(s.label)}">${dragHandleSvg()}</span>
       <button type="button" data-tree-section="${s.id}" class="theme-studio-tree-btn">
         ${sectionIconSvg(s.icon)}
         <span class="theme-studio-tree-btn__label">${escapeHtml(s.label)}</span>
@@ -290,26 +368,12 @@ export function createThemeEditor(ctx) {
    * @param {"up"|"down"} direction
    */
   function moveHomeSection(sectionId, direction) {
-    const order = [...(sectionsMeta.order || HOME_SECTION_ORDER)];
-    const idx = order.indexOf(sectionId);
+    const sorted = getSortedHomeSections();
+    const idx = sorted.findIndex((s) => s.id === sectionId);
     if (idx < 0) return;
-
     const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= order.length) return;
-
-    pushHistory();
-    [order[idx], order[targetIdx]] = [order[targetIdx], order[idx]];
-    sectionsMeta.order = order;
-    bridge?.patchSectionsMeta(sectionsMeta);
-    markDirty();
-
-    const tree = document.getElementById("theme-editor-tree");
-    const row = tree?.querySelector(`[data-tree-row="${sectionId}"]`);
-    row?.classList.add("is-reordering");
-    renderTree();
-    requestAnimationFrame(() => {
-      tree?.querySelector(`[data-tree-row="${sectionId}"]`)?.classList.remove("is-reordering");
-    });
+    if (targetIdx < 0 || targetIdx >= sorted.length) return;
+    reorderHomeSectionToIndex(sectionId, targetIdx);
   }
 
   function renderStaticPageRow(page) {
@@ -519,21 +583,13 @@ export function createThemeEditor(ctx) {
 
     const pageSections = listSectionsForPage(activePage);
     const globalSections = listGlobalSections();
-    const order = sectionsMeta.order || HOME_SECTION_ORDER;
-
-    const sorted = [...pageSections]
-      .filter((s) => !s.global && HOME_SECTION_ORDER.includes(s.id))
-      .sort((a, b) => {
-        const ia = order.indexOf(a.id);
-        const ib = order.indexOf(b.id);
-        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-      });
+    const sorted = getSortedHomeSections();
 
     let html = `<p class="theme-studio-section-label">Sections de l'Accueil</p>`;
     if (activePage === "home") {
       const visible = sorted.filter((s) => matchesSearch(s.label));
       html += visible
-        .map((s) => renderHomeSectionRow(s, order.indexOf(s.id), order.length))
+        .map((s, i) => renderHomeSectionRow(s, i, visible.length))
         .join("");
       if (!visible.length) {
         html += `<p class="theme-studio-inspector__hint px-2">Aucune section.</p>`;
@@ -574,7 +630,7 @@ export function createThemeEditor(ctx) {
 
     tree.querySelectorAll("[data-tree-section]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
-        if (e.target.closest("[data-toggle-hidden]") || e.target.closest("[data-section-move]")) return;
+        if (e.target.closest("[data-toggle-hidden]") || e.target.closest("[data-section-move]") || e.target.closest("[data-drag-section]")) return;
         activeStaticPageId = null;
         activeCmsKey = null;
         const id = btn.dataset.treeSection;
@@ -625,6 +681,8 @@ export function createThemeEditor(ctx) {
         renderTree();
       });
     });
+
+    if (activePage === "home") bindHomeSectionDragDrop(tree);
   }
 
   function selectSection(sectionId, opts = {}) {

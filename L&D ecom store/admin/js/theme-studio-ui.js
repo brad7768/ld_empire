@@ -29,6 +29,11 @@ export function eyeIconSvg(hidden) {
   return `<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="10" cy="10" r="2"/></svg>`;
 }
 
+/** Poignée drag-and-drop (six points). */
+export function dragHandleSvg() {
+  return `<svg class="theme-studio-drag-handle__icon" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="3" r="1"/><circle cx="8" cy="3" r="1"/><circle cx="4" cy="8" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="4" cy="13" r="1"/><circle cx="8" cy="13" r="1"/></svg>`;
+}
+
 /** Flèche épurée pour réordonnancement des sections accueil. */
 export function orderArrowSvg(direction) {
   if (direction === "up") {
