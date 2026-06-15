@@ -45,13 +45,54 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, serviceKey);
       const paidAt = new Date().toISOString();
 
+      const addr = session.shipping_details?.address;
+      const shippingName =
+        session.shipping_details?.name ??
+        session.customer_details?.name ??
+        null;
+
+      const updatePayload: Record<string, unknown> = {
+        status: "paid",
+        paid_at: paidAt,
+        updated_at: paidAt,
+      };
+
+      if (session.metadata?.shipping_method) {
+        updatePayload.shipping_method = session.metadata.shipping_method;
+      }
+
+      if (addr) {
+        updatePayload.shipping_name = shippingName;
+        updatePayload.shipping_line1 = addr.line1 ?? null;
+        updatePayload.shipping_line2 = addr.line2 ?? null;
+        updatePayload.shipping_city = addr.city ?? null;
+        updatePayload.shipping_postal = addr.postal_code ?? null;
+        updatePayload.shipping_country = addr.country ?? null;
+      }
+
+      const { data: existing } = await supabase
+        .from("orders")
+        .select("notes")
+        .eq("id", orderId)
+        .maybeSingle();
+
+      let notes: Record<string, unknown> = {};
+      if (existing?.notes) {
+        try {
+          notes = JSON.parse(existing.notes) as Record<string, unknown>;
+        } catch {
+          notes = { legacy_notes: existing.notes };
+        }
+      }
+
+      notes.stripe_shipping = session.shipping_details ?? null;
+      notes.stripe_customer = session.customer_details ?? null;
+      notes.stripe_session_id = session.id;
+      updatePayload.notes = JSON.stringify(notes);
+
       const { error } = await supabase
         .from("orders")
-        .update({
-          status: "paid",
-          paid_at: paidAt,
-          updated_at: paidAt,
-        })
+        .update(updatePayload)
         .eq("id", orderId)
         .eq("status", "pending");
 

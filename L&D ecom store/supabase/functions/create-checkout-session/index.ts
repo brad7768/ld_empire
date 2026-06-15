@@ -349,6 +349,7 @@ Deno.serve(async (req) => {
     tax_cents: totals.taxCents,
     total_cents: totals.totalCents,
     currency: "CAD",
+    shipping_method: shippingMethod,
     notes: notesPayload,
   }).select("id").single();
 
@@ -381,8 +382,12 @@ Deno.serve(async (req) => {
     apiVersion: "2024-06-20",
     httpClient: Stripe.createFetchHttpClient(),
   });
-  const successPath = `/index/index.html?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+  const successPath = `/success/index.html?session_id={CHECKOUT_SESSION_ID}`;
   const cancelPath = `/index/index.html?checkout=cancel`;
+
+  /** Pays autorisés pour la collecte d'adresse Stripe Checkout (codes ISO 3166-1 alpha-2). */
+  const shippingAllowedCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
+    ["CA", "FR"];
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -391,9 +396,14 @@ Deno.serve(async (req) => {
       line_items: lineItems,
       success_url: `${siteUrl}${successPath}`,
       cancel_url: `${siteUrl}${cancelPath}`,
+      shipping_address_collection: {
+        allowed_countries: shippingAllowedCountries,
+      },
+      phone_number_collection: { enabled: true },
       metadata: {
         order_id: orderRow.id,
         order_number: orderNumber,
+        shipping_method: shippingMethod,
       },
       payment_intent_data: {
         metadata: {

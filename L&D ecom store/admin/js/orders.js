@@ -80,6 +80,18 @@ export function createOrdersModule(ctx) {
     showOrdersSubview("detail");
     const items = o.order_items || [];
     const body = document.getElementById("order-detail-body");
+    const shippingBlock =
+      o.shipping_line1 || o.shipping_city
+        ? `<div class="sm:col-span-2">
+            <span class="text-[11px] font-medium text-stone-400 block">Livraison</span>
+            <p class="text-[13px] leading-relaxed mt-1">
+              ${o.shipping_name ? `${escapeHtml(o.shipping_name)}<br>` : ""}
+              ${escapeHtml([o.shipping_line1, o.shipping_line2].filter(Boolean).join(", "))}<br>
+              ${escapeHtml([o.shipping_postal, o.shipping_city].filter(Boolean).join(" "))}
+              ${o.shipping_country ? `<br>${escapeHtml(o.shipping_country)}` : ""}
+            </p>
+          </div>`
+        : "";
     if (body) {
       body.innerHTML = `
         <div class="admin-card p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-[13px]">
@@ -87,7 +99,8 @@ export function createOrdersModule(ctx) {
           <div><span class="text-[11px] font-medium text-stone-400 block">Statut</span>${statusBadge(o.status)}</div>
           <div><span class="text-[11px] font-medium text-stone-400 block">Total</span><span class="tabular-nums font-medium">${formatMoneyCents(o.total_cents)}</span></div>
           <div><span class="text-[11px] font-medium text-stone-400 block">Date</span>${new Date(o.created_at).toLocaleString("fr-CA")}</div>
-          ${o.notes ? `<div class="sm:col-span-2"><span class="text-[11px] font-medium text-stone-400 block">Notes</span>${escapeHtml(o.notes)}</div>` : ""}
+          ${shippingBlock}
+          ${o.notes ? `<div class="sm:col-span-2"><span class="text-[11px] font-medium text-stone-400 block">Notes</span><pre class="text-[11px] text-stone-600 whitespace-pre-wrap mt-1">${escapeHtml(o.notes)}</pre></div>` : ""}
         </div>
         <div class="admin-card p-5 mt-4">
           <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide mb-3">Lignes</p>

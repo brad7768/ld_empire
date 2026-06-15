@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>L&amp;D — Commande confirmée</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: { 50: '#FDFAF5', 100: '#FAF5EC' },
+            ink: { 600: '#57534E', 700: '#44403C', 900: '#1C1917' },
+            gold: { 700: '#7E6028' },
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'serif'],
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { widest: '0.25em', ultra: '0.35em' },
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --ld-ink-900: #1C1917;
+      --ld-gold-700: #7E6028;
+      --ld-cream-50: #FDFAF5;
+    }
+    body { background-color: var(--ld-cream-50); color: var(--ld-ink-900); font-family: 'DM Sans', sans-serif; }
+    .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: -0.02em; }
+    .grain::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.5; mix-blend-mode: multiply;
+    }
+    .link-underline { position: relative; display: inline-block; }
+    .link-underline::after {
+      content: ""; position: absolute; bottom: -2px; left: 0; width: 100%; height: 1px;
+      background-color: currentColor; transform: scaleX(0); transform-origin: right center;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .link-underline:hover::after { transform: scaleX(1); transform-origin: left center; }
+  </style>
+  <script src="../js/supabase-config.js"></script>
+  <script src="../js/storefront-cart.js"></script>
+</head>
+<body class="grain relative z-0 min-h-screen flex flex-col">
+  <header class="border-b border-stone-200 bg-cream-50/95 backdrop-blur-md">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-4 sm:px-6 lg:px-12">
+      <a href="../index/index.html" class="serif text-xl tracking-wide font-light text-ink-900 hover:text-gold-700 transition-colors">L&amp;D</a>
+    </div>
+  </header>
+
+  <main class="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-gold-700/30 bg-cream-100 text-gold-700" aria-hidden="true">
+      <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+      </svg>
+    </div>
+    <h1 class="serif text-3xl sm:text-4xl text-ink-900 mb-3" id="success-title">Merci pour votre commande</h1>
+    <p class="text-sm text-ink-600 max-w-md mb-8 leading-relaxed" id="success-message">Finalisation de votre paiement…</p>
+    <a href="../index/index.html" class="inline-block min-h-[44px] px-8 py-3 bg-ink-900 text-cream-50 text-[11px] tracking-ultra uppercase hover:bg-gold-700 transition-colors">
+      Retour à la boutique
+    </a>
+  </main>
+
+  <script>
+    /**
+     * Post-checkout Jamstack :
+     * 1. Lit session_id Stripe (query string)
+     * 2. Vide le panier localStorage
+     * 3. Appelle clear_guest_cart via Supabase (panier invité serveur)
+     */
+    (async function initCheckoutSuccess() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      const titleEl = document.getElementById('success-title');
+      const msgEl = document.getElementById('success-message');
+
+      const LS_CART = 'atelier-cart';
+      const LS_GUEST_TOKEN = 'ld-guest-cart-token';
+
+      /** Toujours vider le cache local du panier après paiement validé. */
+      function clearLocalCart() {
+        localStorage.setItem(LS_CART, '[]');
+        sessionStorage.removeItem('ld-stripe-return');
+      }
+
+      /**
+       * Nettoie le panier invité côté Supabase (RPC clear_guest_cart).
+       * @returns {Promise<void>}
+       */
+      async function clearGuestCartRemote() {
+        const cfg = window.LD_SUPABASE;
+        if (!cfg?.url || !cfg?.anonKey) return;
+
+        const guestToken = localStorage.getItem(LS_GUEST_TOKEN);
+        if (!guestToken) return;
+
+        try {
+          const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+          const sb = createClient(cfg.url, cfg.anonKey);
+
+          if (window.LD_CART?.clearCart) {
+            await LD_CART.clearCart(sb, 'supabase');
+            return;
+          }
+
+          const { error } = await sb.rpc('clear_guest_cart', { p_guest_token: guestToken });
+          if (error) console.warn('[L&D success] clear_guest_cart:', error.message);
+        } catch (err) {
+          console.warn('[L&D success] Supabase cart cleanup:', err);
+        }
+      }
+
+      clearLocalCart();
+
+      try {
+        await clearGuestCartRemote();
+      } catch (_) {
+        /* localStorage déjà vidé — échec RPC non bloquant */
+      }
+
+      if (sessionId) {
+        msgEl.textContent =
+          'Votre paiement a été reçu. Vous recevrez un courriel de confirmation sous peu.';
+      } else {
+        msgEl.textContent =
+          'Votre panier a été vidé. Si vous venez de payer, la confirmation arrivera par courriel.';
+        console.warn('[L&D success] session_id absent dans l’URL.');
+      }
+
+      titleEl.textContent = 'Merci pour votre commande';
+    })();
+  </script>
+</body>
+</html>

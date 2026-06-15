@@ -8,6 +8,8 @@ const fs = require('fs');
 
 const path = require('path');
 
+const { spawnSync } = require('child_process');
+
 const { generateAllPages } = require('./generate-pages');
 
 
@@ -151,4 +153,12 @@ fs.writeFileSync(path.join(root, 'robots.txt'), robots, 'utf8');
 console.log(`netlify-build: sitemap.xml (${urls.length} URLs) et robots.txt générés pour ${siteUrl}.`);
 
 console.log('netlify-build: feeds/google-shopping.xml et feeds/meta-catalog.csv générés.');
+
+const themeResult = spawnSync(process.execPath, [path.join(__dirname, 'apply-site-theme.js')], {
+  stdio: 'inherit',
+  env: process.env,
+});
+if (themeResult.status !== 0 && themeResult.status != null) {
+  console.warn('netlify-build: apply-site-theme a échoué (build poursuivi).');
+}
 

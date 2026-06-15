@@ -42,3 +42,8 @@
   from = "/promo-bienvenue"
   to = "/promo-bienvenue/index.html"
   status = 200
+
+[[redirects]]
+  from = "/success"
+  to = "/success/index.html"
+  status = 200
