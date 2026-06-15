@@ -103,18 +103,6 @@
   function updateEditorPageFill() {
     document.querySelectorAll(".ld-editor-fill-last").forEach((el) => el.classList.remove("ld-editor-fill-last"));
     document.getElementById("page-catalog")?.classList.remove("ld-editor-fill-page");
-
-    const home = document.getElementById("page-home");
-    if (home?.classList.contains("active")) {
-      const visible = [...home.querySelectorAll("[data-editor-section]")].filter(
-        (el) => el.style.display !== "none"
-      );
-      if (visible.length) visible[visible.length - 1].classList.add("ld-editor-fill-last");
-      return;
-    }
-
-    const catalog = document.getElementById("page-catalog");
-    if (catalog?.classList.contains("active")) catalog.classList.add("ld-editor-fill-page");
   }
 
   function applySectionsMeta(meta) {
@@ -214,54 +202,6 @@
     .ld-editor-highlight { outline: 2px solid #2563eb !important; outline-offset: 4px; }
     [data-editor-section] { cursor: pointer; }
     .ld-preview-mobile body { max-width: 390px; margin: 0 auto; }
-
-    html.ld-editor-mode,
-    html.ld-editor-mode body.ld-editor-mode {
-      min-height: 100%;
-      height: 100%;
-    }
-    body.ld-editor-mode {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    body.ld-editor-mode #main-content {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-    body.ld-editor-mode #page-home.active {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 100%;
-    }
-    body.ld-editor-mode #page-catalog.ld-editor-fill-page {
-      min-height: calc(100vh - 5rem);
-      display: flex;
-      flex-direction: column;
-    }
-    body.ld-editor-mode #page-catalog.ld-editor-fill-page > .mx-auto {
-      flex: 1;
-    }
-    body.ld-editor-mode [data-editor-section].ld-editor-fill-last {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 4.5rem);
-    }
-    body.ld-editor-mode [data-editor-section].ld-editor-fill-last > .mx-auto,
-    body.ld-editor-mode [data-editor-section].ld-editor-fill-last > div:first-child {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    body.ld-editor-mode > footer {
-      margin-top: auto;
-      flex-shrink: 0;
-    }
   `;
   document.head.appendChild(style);
 

@@ -63,7 +63,12 @@ tailwind.config = {
     background-color: #FDFAF5;
     color: #1C1917;
     font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
+  #main-content { flex: 1 0 auto; }
+  #site-bottom { flex-shrink: 0; }
   .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: -0.02em; }
   ::selection { background-color: rgba(184, 146, 74, 0.25); }
 
@@ -734,8 +739,9 @@ tailwind.config = {
 
 </main>
 
+<div id="site-bottom" class="relative z-10">
 <!-- Réassurance — pré-footer -->
-<section data-editor-section="reassurance" class="relative z-10 border-t border-ink-100 bg-cream-50 py-14 lg:py-16">
+<section data-editor-section="reassurance" class="border-t border-ink-100 bg-cream-50 py-14 lg:py-16">
   <div class="mx-auto max-w-[1200px] px-6 lg:px-12">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
       <div class="flex flex-col items-center text-center px-4 lg:px-8">
@@ -758,7 +764,7 @@ tailwind.config = {
 </section>
 
 <!-- ===================== FOOTER ===================== -->
-<footer data-editor-section="footer" class="relative z-10 border-t border-ink-100 bg-cream-50 py-16 mt-0">
+<footer data-editor-section="footer" class="border-t border-ink-100 bg-cream-50 py-16">
   <div class="mx-auto max-w-[1600px] px-6 lg:px-12">
     <div class="flex flex-col items-center gap-8 text-center">
       <span class="serif text-2xl tracking-wide font-light">L&amp;D</span>
@@ -774,6 +780,7 @@ tailwind.config = {
     </div>
   </div>
 </footer>
+</div>
 
 <script src="../js/supabase-config.js"></script>
 <script src="../js/storefront-catalog.js"></script>
