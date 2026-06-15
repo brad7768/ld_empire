@@ -470,6 +470,28 @@ body.studio-left-collapsed.studio-right-collapsed .theme-studio-body {
   font-weight: 600;
 }
 
+.theme-studio-tree-add-btn {
+  display: flex;
+  align-items: center;
+  width: calc(100% - 0.5rem);
+  margin: 0.35rem 0.25rem 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--studio-muted, #6b6b6f);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.theme-studio-tree-add-btn:hover {
+  background: #f6f6f7;
+  color: var(--studio-text);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
 .theme-studio-eye {
   flex-shrink: 0;
   width: 1.5rem;

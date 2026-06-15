@@ -12,7 +12,7 @@ export const TAB_SUBTITLES = {
   orders: "Suivi des commandes clients",
   products: "Catalogue et variantes",
   stock: "Inventaire et mouvements",
-  cms: "Textes et traductions du site",
+  cms: "Éditeur boutique · personnalisation en direct",
   notes: "Notes techniques"
 };
 
@@ -31,7 +31,7 @@ export function parseHash() {
   } else if (tab === "orders" && parts[1]) {
     sub = "detail";
     id = decodeURIComponent(parts[1]);
-  } else if (tab === "cms" && parts[1] === "editor") {
+  } else if (tab === "cms") {
     sub = "editor";
   }
   return { tab, sub, id };
@@ -44,7 +44,7 @@ export function buildHash(tab, { sub, id } = {}) {
     else if (sub === "edit" && id) h += `/${id}`;
   } else if (tab === "orders" && sub === "detail" && id) {
     h += `/${encodeURIComponent(String(id))}`;
-  } else if (tab === "cms" && sub === "editor") {
+  } else if (tab === "cms") {
     h += "/editor";
   }
   return h;
@@ -84,13 +84,10 @@ export function updateTopbar(route, ctx) {
     subtitle = "Détail et statut";
   } else if (tab === "orders") {
     crumbs = [{ label: "Commandes" }];
-  } else if (tab === "cms" && sub === "editor") {
-    title = "Éditeur boutique";
-    subtitle = "Personnalisation en direct · brouillon / publié";
-    crumbs = [{ label: "Contenu", hash: "#/cms" }, { label: "Éditeur" }];
   } else if (tab === "cms") {
-    crumbs = [{ label: "Contenu" }];
-    subtitle = "Éditeur visuel et textes avancés";
+    title = "Éditeur boutique";
+    subtitle = TAB_SUBTITLES.cms;
+    crumbs = [];
   }
 
   if (titleEl) titleEl.textContent = title;

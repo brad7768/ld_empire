@@ -50,12 +50,8 @@ export function createPaletteModule(ctx) {
           label: c.key,
           sub: c.locale,
           action: () => {
-            setRouteHash("cms", {});
-            setTimeout(() => {
-              document.getElementById("cms-key").value = c.key;
-              document.getElementById("cms-locale").value = c.locale;
-              document.getElementById("cms-value").value = c.value || "";
-            }, 100);
+            ctx.state.pendingCmsKey = c.key;
+            setRouteHash("cms", { sub: "editor" });
           }
         });
       }

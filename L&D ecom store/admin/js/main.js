@@ -54,6 +54,7 @@ const state = {
   variantsCache: [],
   ordersCache: [],
   cmsCache: [],
+  pendingCmsKey: null,
   selectedOrderId: null,
   productFormDirty: false,
   siteSettingsPublished: false,
@@ -221,11 +222,18 @@ function activateTab(tab, route) {
     else stock.renderStockTable();
   }
   if (tab === "cms") {
+    if (route.sub !== "editor") {
+      setRouteHash("cms", { sub: "editor" });
+      return;
+    }
     cms.refreshCmsTab();
-    const editorMode = route.sub === "editor";
-    document.getElementById("dashboard")?.classList.toggle("theme-studio-active", editorMode);
-    document.body.classList.toggle("theme-studio-active", editorMode);
-    if (editorMode && !isSidebarCollapsed()) setSidebarCollapsed(true);
+    document.getElementById("dashboard")?.classList.add("theme-studio-active");
+    document.body.classList.add("theme-studio-active");
+    if (!isSidebarCollapsed()) setSidebarCollapsed(true);
+  } else {
+    document.getElementById("dashboard")?.classList.remove("theme-studio-active");
+    document.body.classList.remove("theme-studio-active");
+    cms.hideEditor?.();
   }
 }
 
@@ -263,7 +271,8 @@ palette.bindPaletteEvents();
 
 document.querySelectorAll(".sidebar-nav[data-tab]").forEach((btn) => {
   btn.addEventListener("click", () => {
-    location.hash = `#/${btn.dataset.tab}`;
+    const tab = btn.dataset.tab;
+    location.hash = tab === "cms" ? "#/cms/editor" : `#/${tab}`;
   });
 });
 document.getElementById("sidebar-toggle")?.addEventListener("click", () => {

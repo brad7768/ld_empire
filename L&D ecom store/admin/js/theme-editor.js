@@ -1,4 +1,4 @@
-import { escapeHtml, emptyState, toast, setStickyBar } from "./ui.js";
+import { escapeHtml, toast, setStickyBar } from "./ui.js";
 import { createEditorBridge } from "./editor-bridge.js";
 import {
   THEME_MANIFEST,
@@ -28,6 +28,7 @@ import {
 
 const STORAGE_BUCKET = "product-media";
 const DRAFT_ID = "draft";
+const STATIC_PAGE_KEYS = new Set(STATIC_PAGES.map((p) => p.cmsKey));
 const PUBLISHED_ID = "published";
 const UNDO_MAX = 20;
 
@@ -40,6 +41,7 @@ export function createThemeEditor(ctx) {
   let activePage = "home";
   let activeSectionId = "hero";
   let activeStaticPageId = null;
+  let activeCmsKey = null;
   let activeFieldKey = null;
   let treeView = "sections";
   let sectionSearch = "";
@@ -241,9 +243,15 @@ export function createThemeEditor(ctx) {
     return label.toLowerCase().includes(sectionSearch.trim().toLowerCase());
   }
 
+  function getAdvancedCmsKeys() {
+    return (ctx.state.cmsCache || [])
+      .filter((r) => r.locale === locale && !STATIC_PAGE_KEYS.has(r.key))
+      .sort((a, b) => a.key.localeCompare(b.key));
+  }
+
   function renderTreeSectionBtn(s, opts = {}) {
     const hidden = sectionsMeta.hidden?.includes(s.id);
-    const selected = s.id === activeSectionId && treeView === "sections" && !activeStaticPageId;
+    const selected = s.id === activeSectionId && treeView === "sections" && !activeStaticPageId && !activeCmsKey;
     return `<button type="button" data-tree-section="${s.id}" class="theme-studio-tree-btn ${selected ? "is-selected" : ""} ${hidden ? "is-hidden-section" : ""}">
       ${sectionIconSvg(s.icon)}
       <span class="theme-studio-tree-btn__label">${escapeHtml(s.label)}</span>
@@ -259,7 +267,7 @@ export function createThemeEditor(ctx) {
    */
   function renderHomeSectionRow(s, index, total) {
     const hidden = sectionsMeta.hidden?.includes(s.id);
-    const selected = s.id === activeSectionId && !activeStaticPageId;
+    const selected = s.id === activeSectionId && !activeStaticPageId && !activeCmsKey;
     const canUp = index > 0;
     const canDown = index < total - 1;
 
@@ -363,10 +371,101 @@ export function createThemeEditor(ctx) {
 
   function selectStaticPage(pageId) {
     activeStaticPageId = pageId;
+    activeCmsKey = null;
     activeSectionId = null;
     treeView = "sections";
     renderTree();
     renderStaticPageEditor(pageId);
+    bridge?.highlight(null);
+  }
+
+  function renderCmsKeyRow(row) {
+    const selected = activeCmsKey === row.key;
+    return `<button type="button" class="theme-studio-static-btn ${selected ? "is-selected" : ""}" data-cms-key="${escapeHtml(row.key)}">
+      ${sectionIconSvg("text")}
+      <span class="theme-studio-tree-btn__label">${escapeHtml(row.key)}</span>
+    </button>`;
+  }
+
+  async function renderCmsKeyEditor(key, { isNew = false } = {}) {
+    const panel = document.getElementById("theme-editor-props");
+    if (!panel) return;
+
+    let row = !isNew ? getAdvancedCmsKeys().find((r) => r.key === key) : null;
+    if (!isNew && key) {
+      const { data, error } = await ctx.sb
+        .from("cms_content")
+        .select("value,is_published")
+        .eq("key", key)
+        .eq("locale", locale)
+        .maybeSingle();
+      if (error) toast(error.message, "error");
+      else if (data) row = { key, ...data };
+    }
+
+    panel.innerHTML = `
+      <h3 class="theme-studio-inspector__title">${isNew ? "Nouvelle clé CMS" : escapeHtml(key)}</h3>
+      <p class="theme-studio-inspector__hint">Textes avancés · enregistré dans cms_content (${escapeHtml(locale.toUpperCase())})</p>
+      <div class="theme-studio-field">
+        <label for="cms-key-edit">Clé</label>
+        <input id="cms-key-edit" class="studio-input" ${isNew ? "" : "readonly"} value="${escapeHtml(key || "")}" placeholder="ex. legal.notice">
+      </div>
+      <div class="theme-studio-field">
+        <label for="cms-value-edit">Contenu</label>
+        <textarea id="cms-value-edit" class="studio-textarea" rows="12" placeholder="Texte ou Markdown…">${escapeHtml(row?.value || "")}</textarea>
+      </div>
+      <label class="flex items-center gap-2 text-[12px] text-stone-600 mb-3">
+        <input id="cms-published-edit" type="checkbox" class="rounded" ${row?.is_published !== false ? "checked" : ""}>
+        Publié sur la boutique
+      </label>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" id="cms-key-save" class="theme-studio-btn-primary">Enregistrer</button>
+        ${isNew ? "" : `<button type="button" id="cms-key-delete" class="theme-studio-btn-ghost">Supprimer</button>`}
+      </div>
+    `;
+
+    document.getElementById("cms-key-save")?.addEventListener("click", async () => {
+      const nextKey = document.getElementById("cms-key-edit")?.value.trim();
+      const value = document.getElementById("cms-value-edit")?.value.trim() || "";
+      const isPublished = document.getElementById("cms-published-edit")?.checked ?? true;
+      if (!nextKey) return toast("Clé requise", "error");
+
+      const { error } = await ctx.sb.from("cms_content").upsert(
+        {
+          key: nextKey,
+          locale,
+          value,
+          is_published: isPublished,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "key,locale" }
+      );
+      if (error) return toast(error.message, "error");
+      toast("Clé CMS enregistrée", "success");
+      await refreshCmsKeysTable();
+      selectCmsKey(nextKey);
+      ctx.renderOnboarding?.();
+    });
+
+    document.getElementById("cms-key-delete")?.addEventListener("click", async () => {
+      if (!key || !confirm(`Supprimer la clé « ${key} » (${locale}) ?`)) return;
+      const { error } = await ctx.sb.from("cms_content").delete().eq("key", key).eq("locale", locale);
+      if (error) return toast(error.message, "error");
+      toast("Clé supprimée", "success");
+      await refreshCmsKeysTable();
+      activeCmsKey = null;
+      selectSection(activeSectionId || "hero");
+      ctx.renderOnboarding?.();
+    });
+  }
+
+  function selectCmsKey(key, opts = {}) {
+    activeStaticPageId = null;
+    activeSectionId = null;
+    activeCmsKey = opts.isNew ? "__new__" : key;
+    treeView = "sections";
+    renderTree();
+    renderCmsKeyEditor(key, opts);
     bridge?.highlight(null);
   }
 
@@ -411,7 +510,7 @@ export function createThemeEditor(ctx) {
     if (!tree) return;
 
     const def = getSectionById(activeSectionId);
-    if (treeView === "blocks" && def && !activeStaticPageId) {
+    if (treeView === "blocks" && def && !activeStaticPageId && !activeCmsKey) {
       renderBlocksView(def);
       return;
     }
@@ -451,6 +550,14 @@ export function createThemeEditor(ctx) {
       .map((p) => renderStaticPageRow(p))
       .join("");
 
+    html += `<p class="theme-studio-section-label">Textes avancés (clés CMS)</p>`;
+    const advancedKeys = getAdvancedCmsKeys().filter((r) => matchesSearch(r.key));
+    html += advancedKeys.map((r) => renderCmsKeyRow(r)).join("");
+    if (!advancedKeys.length && !sectionSearch.trim()) {
+      html += `<p class="theme-studio-inspector__hint px-2">Clés personnalisées hors éditeur visuel.</p>`;
+    }
+    html += `<button type="button" id="cms-tree-new-key" class="theme-studio-tree-add-btn">+ Nouvelle clé CMS</button>`;
+
     html += `<p class="theme-studio-section-label">Global</p>`;
     html += globalSections
       .filter((s) => matchesSearch(s.label))
@@ -469,6 +576,7 @@ export function createThemeEditor(ctx) {
       btn.addEventListener("click", (e) => {
         if (e.target.closest("[data-toggle-hidden]") || e.target.closest("[data-section-move]")) return;
         activeStaticPageId = null;
+        activeCmsKey = null;
         const id = btn.dataset.treeSection;
         const sectionDef = getSectionById(id);
         const groups = getFieldsGrouped(sectionDef);
@@ -487,6 +595,12 @@ export function createThemeEditor(ctx) {
     tree.querySelectorAll("[data-static-page]").forEach((btn) => {
       btn.addEventListener("click", () => selectStaticPage(btn.dataset.staticPage));
     });
+
+    tree.querySelectorAll("[data-cms-key]").forEach((btn) => {
+      btn.addEventListener("click", () => selectCmsKey(btn.dataset.cmsKey));
+    });
+
+    document.getElementById("cms-tree-new-key")?.addEventListener("click", () => selectCmsKey(null, { isNew: true }));
 
     tree.querySelectorAll("[data-section-move]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -515,6 +629,7 @@ export function createThemeEditor(ctx) {
 
   function selectSection(sectionId, opts = {}) {
     activeStaticPageId = null;
+    activeCmsKey = null;
     activeSectionId = sectionId;
     const def = getSectionById(sectionId);
     if (!opts.skipTreeViewReset && treeView === "blocks") {
@@ -702,12 +817,24 @@ export function createThemeEditor(ctx) {
   }
 
   function renderEditorChrome() {
-    document.getElementById("cms-classic-view")?.classList.add("hidden");
     showThemeStudio(true);
     setStickyBar({ visible: false });
 
-    renderTree();
-    selectSection(activeSectionId);
+    if (ctx.state.pendingCmsKey) {
+      const pending = ctx.state.pendingCmsKey;
+      ctx.state.pendingCmsKey = null;
+      const staticPage = STATIC_PAGES.find((p) => p.cmsKey === pending);
+      if (staticPage) selectStaticPage(staticPage.id);
+      else selectCmsKey(pending);
+    } else if (activeCmsKey === "__new__") {
+      selectCmsKey(null, { isNew: true });
+    } else if (activeCmsKey) {
+      selectCmsKey(activeCmsKey);
+    } else if (activeStaticPageId) {
+      selectStaticPage(activeStaticPageId);
+    } else {
+      selectSection(activeSectionId);
+    }
     initPreview();
     clearDirty();
     setPreviewDeviceUi(previewDevice);
@@ -716,29 +843,28 @@ export function createThemeEditor(ctx) {
 
   function hideEditor() {
     showThemeStudio(false);
-    document.getElementById("cms-classic-view")?.classList.remove("hidden");
     if (bridge) {
       bridge.destroy();
       bridge = null;
     }
     setStickyBar({ visible: false });
     treeView = "sections";
+    activeCmsKey = null;
   }
 
   function isEditorRoute(route) {
-    return route?.tab === "cms" && route?.sub === "editor";
+    return route?.tab === "cms";
   }
 
   async function refresh(route) {
-    const inEditor = isEditorRoute(route);
-    if (inEditor) {
-      await loadDraft();
-      renderEditorChrome();
-      await updatePublishBadge();
-    } else {
+    if (!isEditorRoute(route)) {
       hideEditor();
-      await refreshCmsKeysTable();
+      return;
     }
+    await loadDraft();
+    await refreshCmsKeysTable();
+    renderEditorChrome();
+    await updatePublishBadge();
   }
 
   async function updatePublishBadge() {
@@ -759,44 +885,18 @@ export function createThemeEditor(ctx) {
   }
 
   async function refreshCmsKeysTable() {
-    const { data: cmsRows } = await ctx.sb
+    const { data: cmsRows, error } = await ctx.sb
       .from("cms_content")
       .select("id,key,locale,value,is_published")
       .order("updated_at", { ascending: false })
       .limit(200);
+    if (error) console.warn(error);
     ctx.state.cmsCache = cmsRows || [];
-    const tbody = document.getElementById("cms-tbody");
-    if (!tbody) return;
-    if (!ctx.state.cmsCache.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="p-6">${emptyState({
-        title: "Aucune clé CMS",
-        body: "Textes légaux ou pages statiques hors éditeur visuel."
-      })}</td></tr>`;
-    } else {
-      tbody.innerHTML = ctx.state.cmsCache
-        .map(
-          (r) => `
-        <tr class="border-t border-stone-100">
-          <td class="px-4 py-3 font-medium text-[13px]">${escapeHtml(r.key)}</td>
-          <td class="px-4 py-3 text-[12px]">${escapeHtml(r.locale)}</td>
-          <td class="px-4 py-3 text-[12px] text-stone-600 max-w-md truncate">${escapeHtml((r.value || "").slice(0, 80))}</td>
-          <td class="px-4 py-3">${r.is_published ? "Oui" : "Non"}</td>
-        </tr>`
-        )
-        .join("");
-    }
   }
 
   function bindEvents() {
     initThemeStudioChrome();
 
-    document.getElementById("cms-open-editor")?.addEventListener("click", () => {
-      location.hash = "#/cms/editor";
-    });
-    document.getElementById("theme-studio-back")?.addEventListener("click", () => {
-      if (dirty && !confirm("Quitter sans enregistrer le brouillon ?")) return;
-      location.hash = "#/cms";
-    });
     document.getElementById("theme-editor-publish")?.addEventListener("click", publishSite);
     document.getElementById("theme-studio-save")?.addEventListener("click", saveDraft);
     document.getElementById("theme-studio-discard")?.addEventListener("click", () => {
@@ -806,13 +906,11 @@ export function createThemeEditor(ctx) {
     });
     document.getElementById("theme-studio-undo")?.addEventListener("click", undo);
     document.getElementById("theme-studio-redo")?.addEventListener("click", redo);
-    document.getElementById("theme-studio-link-cms")?.addEventListener("click", () => {
-      if (dirty && !confirm("Quitter l'éditeur sans enregistrer ?")) return;
-      location.hash = "#/cms";
-    });
     document.getElementById("theme-editor-page-select")?.addEventListener("change", (e) => {
       activePage = e.target.value;
       treeView = "sections";
+      activeCmsKey = null;
+      activeStaticPageId = null;
       const sections = listSectionsForPage(activePage);
       if (sections[0]) selectSection(sections[0].id);
       bridge?.navigate(activePage);
@@ -821,8 +919,11 @@ export function createThemeEditor(ctx) {
     document.getElementById("theme-editor-locale")?.addEventListener("change", async (e) => {
       locale = e.target.value;
       await loadDraft();
+      await refreshCmsKeysTable();
       initPreview();
       treeView = "sections";
+      activeCmsKey = null;
+      activeStaticPageId = null;
       renderTree();
       selectSection(activeSectionId);
       updatePublishBadge();
@@ -833,23 +934,8 @@ export function createThemeEditor(ctx) {
     document.getElementById("theme-editor-refresh")?.addEventListener("click", initPreview);
     document.getElementById("theme-section-search")?.addEventListener("input", (e) => {
       sectionSearch = e.target.value;
-      if (treeView === "sections") renderTree();
-    });
-    document.getElementById("cms-form")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const payload = {
-        key: document.getElementById("cms-key").value.trim(),
-        locale: document.getElementById("cms-locale").value,
-        value: document.getElementById("cms-value").value.trim(),
-        is_published: document.getElementById("cms-published").checked
-      };
-      const { error } = await ctx.sb.from("cms_content").upsert(payload, { onConflict: "key,locale" });
-      if (error) return toast(error.message, "error");
-      e.target.reset();
-      document.getElementById("cms-published").checked = true;
-      toast("Clé CMS enregistrée", "success");
-      await refreshCmsKeysTable();
-      ctx.renderOnboarding?.();
+      if (sectionSearch.trim()) treeView = "sections";
+      renderTree();
     });
   }
 

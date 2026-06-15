@@ -16,6 +16,7 @@ export function createCmsModule(ctx) {
     refreshCmsTab,
     bindCmsEvents,
     loadSiteSettings: () => editor.loadDraft(),
-    isEditorRoute: (route) => editor.isEditorRoute(route)
+    isEditorRoute: (route) => editor.isEditorRoute(route),
+    hideEditor: () => editor.hideEditor()
   };
 }
