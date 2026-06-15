@@ -3,6 +3,7 @@ import { createEditorBridge } from "./editor-bridge.js";
 import {
   THEME_MANIFEST,
   HOME_SECTION_ORDER,
+  STATIC_PAGES,
   getSectionById,
   listSectionsForPage,
   listGlobalSections,
@@ -21,7 +22,8 @@ import {
   setPreviewDeviceUi,
   showThemeStudio,
   initThemeStudioChrome,
-  updateUndoRedoButtons
+  updateUndoRedoButtons,
+  orderArrowSvg
 } from "./theme-studio-ui.js";
 
 const STORAGE_BUCKET = "product-media";
@@ -37,6 +39,7 @@ export function createThemeEditor(ctx) {
   let dirty = false;
   let activePage = "home";
   let activeSectionId = "hero";
+  let activeStaticPageId = null;
   let activeFieldKey = null;
   let treeView = "sections";
   let sectionSearch = "";
@@ -240,13 +243,131 @@ export function createThemeEditor(ctx) {
 
   function renderTreeSectionBtn(s, opts = {}) {
     const hidden = sectionsMeta.hidden?.includes(s.id);
-    const selected = s.id === activeSectionId && treeView === "sections";
-    const draggable = opts.draggable ? ' draggable="true"' : "";
-    return `<button type="button" data-tree-section="${s.id}" class="theme-studio-tree-btn ${selected ? "is-selected" : ""} ${hidden ? "is-hidden-section" : ""}"${draggable}>
+    const selected = s.id === activeSectionId && treeView === "sections" && !activeStaticPageId;
+    return `<button type="button" data-tree-section="${s.id}" class="theme-studio-tree-btn ${selected ? "is-selected" : ""} ${hidden ? "is-hidden-section" : ""}">
       ${sectionIconSvg(s.icon)}
       <span class="theme-studio-tree-btn__label">${escapeHtml(s.label)}</span>
       ${opts.showEye ? `<span role="button" tabindex="0" class="theme-studio-eye" data-toggle-hidden="${s.id}" title="Visibilité" aria-label="Visibilité">${eyeIconSvg(hidden)}</span>` : ""}
     </button>`;
+  }
+
+  /**
+   * Ligne section accueil avec flèches ▲/▼ (layout → sections._meta.order).
+   * @param {object} s
+   * @param {number} index
+   * @param {number} total
+   */
+  function renderHomeSectionRow(s, index, total) {
+    const hidden = sectionsMeta.hidden?.includes(s.id);
+    const selected = s.id === activeSectionId && !activeStaticPageId;
+    const canUp = index > 0;
+    const canDown = index < total - 1;
+
+    return `<div class="theme-studio-tree-row ${selected ? "is-selected" : ""} ${hidden ? "is-hidden-section" : ""}" data-tree-row="${s.id}">
+      <button type="button" data-tree-section="${s.id}" class="theme-studio-tree-btn">
+        ${sectionIconSvg(s.icon)}
+        <span class="theme-studio-tree-btn__label">${escapeHtml(s.label)}</span>
+      </button>
+      <div class="theme-studio-tree-controls">
+        <button type="button" class="theme-studio-order-btn" data-section-move="up" data-section-id="${s.id}" aria-label="Monter ${escapeHtml(s.label)}" ${canUp ? "" : "disabled"}>${orderArrowSvg("up")}</button>
+        <button type="button" class="theme-studio-order-btn" data-section-move="down" data-section-id="${s.id}" aria-label="Descendre ${escapeHtml(s.label)}" ${canDown ? "" : "disabled"}>${orderArrowSvg("down")}</button>
+        <button type="button" class="theme-studio-eye" data-toggle-hidden="${s.id}" title="Visibilité" aria-label="Visibilité">${eyeIconSvg(hidden)}</button>
+      </div>
+    </div>`;
+  }
+
+  /**
+   * Déplace une section accueil dans sections._meta.order (persisté dans site_settings.sections).
+   * @param {string} sectionId
+   * @param {"up"|"down"} direction
+   */
+  function moveHomeSection(sectionId, direction) {
+    const order = [...(sectionsMeta.order || HOME_SECTION_ORDER)];
+    const idx = order.indexOf(sectionId);
+    if (idx < 0) return;
+
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= order.length) return;
+
+    pushHistory();
+    [order[idx], order[targetIdx]] = [order[targetIdx], order[idx]];
+    sectionsMeta.order = order;
+    bridge?.patchSectionsMeta(sectionsMeta);
+    markDirty();
+
+    const tree = document.getElementById("theme-editor-tree");
+    const row = tree?.querySelector(`[data-tree-row="${sectionId}"]`);
+    row?.classList.add("is-reordering");
+    renderTree();
+    requestAnimationFrame(() => {
+      tree?.querySelector(`[data-tree-row="${sectionId}"]`)?.classList.remove("is-reordering");
+    });
+  }
+
+  function renderStaticPageRow(page) {
+    const selected = activeStaticPageId === page.id;
+    return `<button type="button" class="theme-studio-static-btn ${selected ? "is-selected" : ""}" data-static-page="${page.id}">
+      ${sectionIconSvg(page.icon || "text")}
+      <span class="theme-studio-tree-btn__label">${escapeHtml(page.label)}</span>
+    </button>`;
+  }
+
+  async function renderStaticPageEditor(pageId) {
+    const panel = document.getElementById("theme-editor-props");
+    const page = STATIC_PAGES.find((p) => p.id === pageId);
+    if (!panel || !page) return;
+
+    panel.innerHTML = `
+      <h3 class="theme-studio-inspector__title">${escapeHtml(page.label)}</h3>
+      <p class="theme-studio-inspector__hint">Contenu Markdown · enregistré dans cms_content</p>
+      <div class="theme-studio-field">
+        <label for="static-page-body">Corps de la page</label>
+        <textarea id="static-page-body" class="studio-textarea" rows="14" placeholder="Titres (#), listes, paragraphes…"></textarea>
+        <p class="studio-help">Clé CMS : <code>${escapeHtml(page.cmsKey)}</code></p>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button type="button" id="static-page-save" class="theme-studio-btn-primary">Enregistrer</button>
+        <a href="${escapeHtml(page.href)}" target="_blank" rel="noopener noreferrer" class="theme-studio-btn-ghost" style="display:inline-flex;align-items:center;text-decoration:none">Aperçu ↗</a>
+      </div>
+    `;
+
+    const { data, error } = await ctx.sb
+      .from("cms_content")
+      .select("value")
+      .eq("key", page.cmsKey)
+      .eq("locale", locale)
+      .maybeSingle();
+
+    if (error) toast(error.message, "error");
+
+    const ta = document.getElementById("static-page-body");
+    if (ta) ta.value = data?.value || "";
+
+    document.getElementById("static-page-save")?.addEventListener("click", async () => {
+      const value = document.getElementById("static-page-body")?.value.trim() || "";
+      const { error: saveErr } = await ctx.sb.from("cms_content").upsert(
+        {
+          key: page.cmsKey,
+          locale,
+          value,
+          is_published: true,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "key,locale" }
+      );
+      if (saveErr) return toast(saveErr.message, "error");
+      toast("Page enregistrée", "success");
+      await refreshCmsKeysTable();
+    });
+  }
+
+  function selectStaticPage(pageId) {
+    activeStaticPageId = pageId;
+    activeSectionId = null;
+    treeView = "sections";
+    renderTree();
+    renderStaticPageEditor(pageId);
+    bridge?.highlight(null);
   }
 
   function renderBlocksView(def) {
@@ -285,51 +406,12 @@ export function createThemeEditor(ctx) {
     });
   }
 
-  function bindTreeDragDrop(tree) {
-    let dragId = null;
-    tree.querySelectorAll("[data-tree-section][draggable]").forEach((btn) => {
-      btn.addEventListener("dragstart", (e) => {
-        dragId = btn.dataset.treeSection;
-        btn.classList.add("is-dragging");
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", dragId);
-      });
-      btn.addEventListener("dragend", () => {
-        btn.classList.remove("is-dragging");
-        tree.querySelectorAll(".is-drag-over").forEach((el) => el.classList.remove("is-drag-over"));
-        dragId = null;
-      });
-      btn.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        if (btn.dataset.treeSection !== dragId) btn.classList.add("is-drag-over");
-      });
-      btn.addEventListener("dragleave", () => btn.classList.remove("is-drag-over"));
-      btn.addEventListener("drop", (e) => {
-        e.preventDefault();
-        btn.classList.remove("is-drag-over");
-        const targetId = btn.dataset.treeSection;
-        if (!dragId || dragId === targetId) return;
-        const order = [...(sectionsMeta.order || HOME_SECTION_ORDER)];
-        const from = order.indexOf(dragId);
-        const to = order.indexOf(targetId);
-        if (from < 0 || to < 0) return;
-        pushHistory();
-        order.splice(from, 1);
-        order.splice(to, 0, dragId);
-        sectionsMeta.order = order;
-        bridge?.patchSectionsMeta(sectionsMeta);
-        markDirty();
-        renderTree();
-      });
-    });
-  }
-
   function renderTree() {
     const tree = document.getElementById("theme-editor-tree");
     if (!tree) return;
 
     const def = getSectionById(activeSectionId);
-    if (treeView === "blocks" && def) {
+    if (treeView === "blocks" && def && !activeStaticPageId) {
       renderBlocksView(def);
       return;
     }
@@ -340,16 +422,33 @@ export function createThemeEditor(ctx) {
     const globalSections = listGlobalSections();
     const order = sectionsMeta.order || HOME_SECTION_ORDER;
 
-    const sorted = [...pageSections].sort((a, b) => {
-      const ia = order.indexOf(a.id);
-      const ib = order.indexOf(b.id);
-      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-    });
+    const sorted = [...pageSections]
+      .filter((s) => !s.global && HOME_SECTION_ORDER.includes(s.id))
+      .sort((a, b) => {
+        const ia = order.indexOf(a.id);
+        const ib = order.indexOf(b.id);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      });
 
-    let html = `<p class="theme-studio-section-label">Page</p>`;
-    html += sorted
-      .filter((s) => matchesSearch(s.label))
-      .map((s) => renderTreeSectionBtn(s, { showEye: true, draggable: activePage === "home" && HOME_SECTION_ORDER.includes(s.id) }))
+    let html = `<p class="theme-studio-section-label">Sections de l'Accueil</p>`;
+    if (activePage === "home") {
+      const visible = sorted.filter((s) => matchesSearch(s.label));
+      html += visible
+        .map((s) => renderHomeSectionRow(s, order.indexOf(s.id), order.length))
+        .join("");
+      if (!visible.length) {
+        html += `<p class="theme-studio-inspector__hint px-2">Aucune section.</p>`;
+      }
+    } else {
+      html += pageSections
+        .filter((s) => matchesSearch(s.label))
+        .map((s) => renderTreeSectionBtn(s))
+        .join("");
+    }
+
+    html += `<p class="theme-studio-section-label">Pages Statiques &amp; Légales</p>`;
+    html += STATIC_PAGES.filter((p) => matchesSearch(p.label))
+      .map((p) => renderStaticPageRow(p))
       .join("");
 
     html += `<p class="theme-studio-section-label">Global</p>`;
@@ -364,18 +463,12 @@ export function createThemeEditor(ctx) {
       {}
     );
 
-    if (activePage === "home") {
-      const promo = pageSections.find((x) => x.id === "promoPopup");
-      if (promo && matchesSearch(promo.label) && !sorted.some((s) => s.id === "promoPopup")) {
-        html += renderTreeSectionBtn(promo);
-      }
-    }
-
     tree.innerHTML = html;
 
     tree.querySelectorAll("[data-tree-section]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
-        if (e.target.closest("[data-toggle-hidden]")) return;
+        if (e.target.closest("[data-toggle-hidden]") || e.target.closest("[data-section-move]")) return;
+        activeStaticPageId = null;
         const id = btn.dataset.treeSection;
         const sectionDef = getSectionById(id);
         const groups = getFieldsGrouped(sectionDef);
@@ -388,6 +481,18 @@ export function createThemeEditor(ctx) {
           treeView = "sections";
         }
         selectSection(id, { skipTreeViewReset: true });
+      });
+    });
+
+    tree.querySelectorAll("[data-static-page]").forEach((btn) => {
+      btn.addEventListener("click", () => selectStaticPage(btn.dataset.staticPage));
+    });
+
+    tree.querySelectorAll("[data-section-move]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (btn.disabled) return;
+        moveHomeSection(btn.dataset.sectionId, btn.dataset.sectionMove);
       });
     });
 
@@ -406,11 +511,10 @@ export function createThemeEditor(ctx) {
         renderTree();
       });
     });
-
-    bindTreeDragDrop(tree);
   }
 
   function selectSection(sectionId, opts = {}) {
+    activeStaticPageId = null;
     activeSectionId = sectionId;
     const def = getSectionById(sectionId);
     if (!opts.skipTreeViewReset && treeView === "blocks") {
@@ -454,10 +558,6 @@ export function createThemeEditor(ctx) {
       ${fieldsHtml}
       ${def.id === "hero" ? `<div class="theme-studio-field"><label>Upload images hero</label><input type="file" id="hero-upload-input" accept="image/*" multiple class="text-[12px]"><p id="hero-upload-status" class="studio-help hidden"></p></div>` : ""}
       ${def.id === "promoPopup" ? `<button type="button" id="theme-preview-promo" class="theme-studio-btn-ghost" style="margin-bottom:0.75rem">Aperçu popup dans l'iframe</button>` : ""}
-      ${activePage === "home" && HOME_SECTION_ORDER.includes(def.id) ? `<div class="flex gap-2 mt-4 pt-4" style="border-top:1px solid var(--studio-border)">
-        <button type="button" data-section-move="up" class="theme-studio-btn-ghost" style="flex:1">Monter</button>
-        <button type="button" data-section-move="down" class="theme-studio-btn-ghost" style="flex:1">Descendre</button>
-      </div>` : ""}
     `;
 
     bindInspectorInputs(panel, def, (key, val) => setSectionValue(def.id, key, val));
@@ -468,23 +568,6 @@ export function createThemeEditor(ctx) {
         const o = new URL(iframe.src, window.location.href).origin;
         iframe.contentWindow?.postMessage({ source: "ld-admin", type: "SHOW_PROMO" }, o);
       } catch (_) {}
-    });
-
-    panel.querySelectorAll("[data-section-move]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const order = [...(sectionsMeta.order || HOME_SECTION_ORDER)];
-        const idx = order.indexOf(def.id);
-        if (idx < 0) return;
-        pushHistory();
-        const dir = btn.dataset.sectionMove === "up" ? -1 : 1;
-        const ni = idx + dir;
-        if (ni < 0 || ni >= order.length) return;
-        [order[idx], order[ni]] = [order[ni], order[idx]];
-        sectionsMeta.order = order;
-        bridge?.patchSectionsMeta(sectionsMeta);
-        markDirty();
-        renderTree();
-      });
     });
 
     const heroInput = document.getElementById("hero-upload-input");

@@ -351,6 +351,125 @@ body.studio-left-collapsed.studio-right-collapsed .theme-studio-body {
   white-space: nowrap;
 }
 
+.theme-studio-tree-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.125rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.theme-studio-tree-row.is-selected {
+  background: #f0ebe3;
+}
+
+.theme-studio-tree-row.is-selected .theme-studio-tree-btn {
+  background: transparent;
+  font-weight: 600;
+}
+
+.theme-studio-tree-row.is-hidden-section {
+  opacity: 0.55;
+}
+
+.theme-studio-tree-row .theme-studio-tree-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-studio-tree-row .theme-studio-tree-btn.is-selected::before {
+  display: none;
+}
+
+.theme-studio-tree-row.is-selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--studio-accent);
+}
+
+.theme-studio-tree-row {
+  position: relative;
+}
+
+.theme-studio-tree-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.25rem 0.35rem 0.25rem 0;
+  flex-shrink: 0;
+}
+
+.theme-studio-order-btn {
+  width: 1.375rem;
+  height: 1.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: #78716c;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.theme-studio-order-btn:hover:not(:disabled) {
+  background: #ebebeb;
+  color: var(--studio-text);
+}
+
+.theme-studio-order-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.theme-studio-order-btn svg {
+  width: 10px;
+  height: 10px;
+}
+
+.theme-studio-tree-row.is-reordering {
+  animation: studio-row-shift 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes studio-row-shift {
+  0% { transform: translateY(-4px); opacity: 0.7; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.theme-studio-static-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #44403c;
+  cursor: pointer;
+}
+
+.theme-studio-static-btn:hover {
+  background: #f6f6f7;
+}
+
+.theme-studio-static-btn.is-selected {
+  background: #f0ebe3;
+  color: var(--studio-text);
+  font-weight: 600;
+}
+
 .theme-studio-eye {
   flex-shrink: 0;
   width: 1.5rem;

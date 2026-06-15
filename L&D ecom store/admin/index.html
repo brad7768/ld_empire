@@ -102,6 +102,7 @@
       transition: background 0.15s ease;
     }
     .admin-icon-btn:hover { background: #fafaf9; }
+    .admin-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .admin-table-wrap {
       overflow: auto;
       border-radius: 0.5rem;
@@ -395,9 +396,6 @@
               <span class="relative flex-1 min-w-[12rem] max-w-xl">
                   <input id="products-search" type="search" placeholder="Rechercher…" class="admin-input pl-8 w-full">
                 </span>
-              <span id="products-page-info" class="text-[11px] text-stone-400 tabular-nums"></span>
-              <button type="button" id="products-prev" class="admin-icon-btn w-9 h-9" aria-label="Page précédente">‹</button>
-              <button type="button" id="products-next" class="admin-icon-btn w-9 h-9" aria-label="Page suivante">›</button>
             </div>
             <div class="admin-table-wrap">
               <table class="min-w-full text-[13px]">
@@ -414,6 +412,11 @@
                 <tbody id="products-tbody"></tbody>
               </table>
             </div>
+            <nav id="products-pagination" class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-stone-200/80" aria-label="Pagination produits">
+              <button type="button" id="products-prev" class="admin-icon-btn w-10 h-10 text-[13px] font-medium tabular-nums" aria-label="Page précédente">&lt;</button>
+              <span id="products-page-info" class="text-[12px] text-stone-600 tabular-nums min-w-[7rem] text-center">Page 1 / 1</span>
+              <button type="button" id="products-next" class="admin-icon-btn w-10 h-10 text-[13px] font-medium tabular-nums" aria-label="Page suivante">&gt;</button>
+            </nav>
           </div>
           <div id="products-view-form" class="hidden pb-4">
             <form id="product-form" class="product-form-grid" novalidate>

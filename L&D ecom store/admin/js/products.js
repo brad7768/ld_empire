@@ -12,13 +12,14 @@ import {
   debounce
 } from "./ui.js";
 import { normalizeProductImageUrls } from "./media.js";
-import { buildHash, setRouteHash } from "./router.js";
+import { setRouteHash } from "./router.js";
 import { deactivateProductRecord } from "./theme-editor.js";
 
 const PAGE_SIZE = 10;
 
 export function createProductsModule(ctx) {
   let productsPage = 0;
+  let productsTotalCount = 0;
   let filterActive = "all";
 
   function inventoryForProduct(productId) {
@@ -27,18 +28,84 @@ export function createProductsModule(ctx) {
       .reduce((s, v) => s + (v.inventory?.[0]?.on_hand ?? 0), 0);
   }
 
-  function getFilteredProducts() {
-    let list = ctx.state.productsCache;
-    if (filterActive === "active") list = list.filter((p) => p.active);
-    if (filterActive === "inactive") list = list.filter((p) => !p.active);
-    const q = (document.getElementById("products-search")?.value || "").trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(
-      (p) =>
-        (p.name || "").toLowerCase().includes(q) ||
-        (p.slug || "").toLowerCase().includes(q) ||
-        (p.category || "").toLowerCase().includes(q)
-    );
+  function buildProductsQuery() {
+    const q = (document.getElementById("products-search")?.value || "").trim();
+    let query = ctx.sb.from("products").select("id,name,slug,category,description,active,image_urls", {
+      count: "exact"
+    });
+
+    if (filterActive === "active") query = query.eq("active", true);
+    if (filterActive === "inactive") query = query.eq("active", false);
+
+    if (q) {
+      const safe = q.replace(/[%_,]/g, " ").trim();
+      if (safe) {
+        query = query.or(`name.ilike.%${safe}%,slug.ilike.%${safe}%,category.ilike.%${safe}%`);
+      }
+    }
+
+    return query.order("created_at", { ascending: false });
+  }
+
+  /**
+   * Charge une page de produits via Supabase .range(start, end).
+   * @returns {Promise<boolean>}
+   */
+  async function fetchProductsPage() {
+    let start = productsPage * PAGE_SIZE;
+    let end = start + PAGE_SIZE - 1;
+
+    let { data, error, count } = await buildProductsQuery().range(start, end);
+
+    if (error) {
+      toast(error.message, "error");
+      return false;
+    }
+
+    productsTotalCount = count ?? 0;
+    const totalPages = Math.max(1, Math.ceil(productsTotalCount / PAGE_SIZE) || 1);
+
+    if (productsPage > totalPages - 1 && productsTotalCount > 0) {
+      productsPage = totalPages - 1;
+      start = productsPage * PAGE_SIZE;
+      end = start + PAGE_SIZE - 1;
+      const retry = await buildProductsQuery().range(start, end);
+      if (retry.error) {
+        toast(retry.error.message, "error");
+        return false;
+      }
+      data = retry.data;
+    }
+
+    ctx.state.productsPageData = data || [];
+    ctx.state.productsCache = ctx.state.productsPageData;
+    return true;
+  }
+
+  function updatePaginationUi() {
+    const totalPages = Math.max(1, Math.ceil(productsTotalCount / PAGE_SIZE) || 1);
+    const info = document.getElementById("products-page-info");
+    const prev = document.getElementById("products-prev");
+    const next = document.getElementById("products-next");
+
+    if (info) {
+      info.textContent = productsTotalCount
+        ? `Page ${productsPage + 1} / ${totalPages}`
+        : "Page 0 / 0";
+    }
+
+    if (prev) {
+      prev.disabled = productsPage <= 0;
+      prev.classList.toggle("opacity-40", productsPage <= 0);
+      prev.classList.toggle("pointer-events-none", productsPage <= 0);
+    }
+
+    if (next) {
+      const onLast = productsPage >= totalPages - 1 || productsTotalCount === 0;
+      next.disabled = onLast;
+      next.classList.toggle("opacity-40", onLast);
+      next.classList.toggle("pointer-events-none", onLast);
+    }
   }
 
   function showProductsSubview(sub) {
@@ -49,16 +116,17 @@ export function createProductsModule(ctx) {
     }
   }
 
-  function renderProductsList() {
+  async function renderProductsList() {
     showProductsSubview("list");
-    const filtered = getFilteredProducts();
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    if (productsPage > totalPages - 1) productsPage = Math.max(0, totalPages - 1);
-    const slice = filtered.slice(productsPage * PAGE_SIZE, (productsPage + 1) * PAGE_SIZE);
     const tbody = document.getElementById("products-tbody");
+    if (tbody) tbody.innerHTML = skeletonRows(6, 5);
+
+    await fetchProductsPage();
+
+    const list = ctx.state.productsPageData || [];
     if (!tbody) return;
 
-    if (!filtered.length) {
+    if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="6" class="p-8">${emptyState({
         title: "Aucun produit",
         body: "Ajoutez votre premier article au catalogue.",
@@ -66,7 +134,7 @@ export function createProductsModule(ctx) {
         ctaHref: "#/products/new"
       })}</td></tr>`;
     } else {
-      tbody.innerHTML = slice
+      tbody.innerHTML = list
         .map((p) => {
           const imgs = normalizeProductImageUrls(p.image_urls);
           const thumb = imgs[0]
@@ -96,8 +164,7 @@ export function createProductsModule(ctx) {
         .join("");
     }
 
-    document.getElementById("products-page-info").textContent =
-      `${filtered.length} · ${productsPage + 1}/${totalPages}`;
+    updatePaginationUi();
 
     tbody.querySelectorAll(".product-row").forEach((row) => {
       row.addEventListener("click", (e) => {
@@ -142,6 +209,23 @@ export function createProductsModule(ctx) {
         }
       });
     });
+  }
+
+  async function fetchProductById(productId) {
+    const cached = ctx.state.productsPageData?.find((x) => String(x.id) === String(productId));
+    if (cached) return cached;
+
+    const { data, error } = await ctx.sb
+      .from("products")
+      .select("id,name,slug,category,description,active,image_urls")
+      .eq("id", productId)
+      .maybeSingle();
+
+    if (error) {
+      toast(error.message, "error");
+      return null;
+    }
+    return data;
   }
 
   function fillProductForm(p = null) {
@@ -209,11 +293,9 @@ export function createProductsModule(ctx) {
     saveProduct({ preventDefault() {} });
   }
 
-  function renderProductForm(productId) {
+  async function renderProductForm(productId) {
     showProductsSubview("form");
-    const p = productId
-      ? ctx.state.productsCache.find((x) => String(x.id) === String(productId))
-      : null;
+    const p = productId ? await fetchProductById(productId) : null;
     fillProductForm(p);
     setStickyBar({
       visible: true,
@@ -230,12 +312,9 @@ export function createProductsModule(ctx) {
     const name = document.getElementById("pf-name").value.trim();
     let slug = document.getElementById("pf-slug").value.trim();
     const category = document.getElementById("pf-category").value.trim();
+    const priceCad = Number(document.getElementById("pf-price")?.value);
     if (!name || !category) {
       toast("Nom et catégorie requis", "error");
-      return;
-    }
-    if (!id && !(priceCad > 0)) {
-      toast("Prix valide requis", "error");
       return;
     }
     if (!slug) slug = slugify(name);
@@ -251,8 +330,6 @@ export function createProductsModule(ctx) {
     const urlsRaw = document.getElementById("pf-image-urls")?.value || "";
     const primaryUrl = (document.getElementById("pf-image-url")?.value || "").trim();
     const image_urls = [...new Set([primaryUrl, ...urlsRaw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean)].filter(Boolean))];
-    const priceCad = Number(document.getElementById("pf-price")?.value);
-    const stockQty = Number(document.getElementById("pf-stock")?.value) || 0;
     const payload = {
       name,
       slug,
@@ -265,15 +342,13 @@ export function createProductsModule(ctx) {
     const saveBtn = document.getElementById("sticky-save");
     setButtonLoading(saveBtn, true);
     try {
-      if (id) {
-        const { error } = await ctx.sb.from("products").update(payload).eq("id", id);
-        if (error) throw error;
-        toast("Produit enregistré", "success");
-        ctx.state.productFormDirty = false;
-        setRouteHash("products", { sub: "edit", id });
-        await ctx.refreshProductsTab();
-        setStickyBar({ visible: true, dirty: false, ...productFormSaveHandlers(), saveLabel: "Enregistrer" });
-      }
+      const { error } = await ctx.sb.from("products").update(payload).eq("id", id);
+      if (error) throw error;
+      toast("Produit enregistré", "success");
+      ctx.state.productFormDirty = false;
+      setRouteHash("products", { sub: "edit", id });
+      await ctx.refreshProductsTab();
+      setStickyBar({ visible: true, dirty: false, ...productFormSaveHandlers(), saveLabel: "Enregistrer" });
       await ctx.refreshAnalytics();
     } catch (err) {
       toast(err.message || "Erreur", "error");
@@ -283,23 +358,21 @@ export function createProductsModule(ctx) {
   }
 
   async function refreshProductsTab() {
-    const tbody = document.getElementById("products-tbody");
-    if (tbody) tbody.innerHTML = skeletonRows(6, 5);
-    const { data, error } = await ctx.sb
-      .from("products")
-      .select("id,name,slug,category,description,active,image_urls")
-      .order("created_at", { ascending: false });
-    if (error) {
-      toast(error.message, "error");
-      return;
-    }
-    ctx.state.productsCache = data || [];
     const route = ctx.getRoute();
     if (route.tab === "products") {
       if (route.sub === "new") renderProductForm(null);
-      else if (route.sub === "edit" && route.id) renderProductForm(route.id);
-      else renderProductsList();
+      else if (route.sub === "edit" && route.id) await renderProductForm(route.id);
+      else await renderProductsList();
     }
+  }
+
+  /** Compte total pour analytics / onboarding (requête légère). */
+  async function fetchProductsCount() {
+    const { count, error } = await ctx.sb
+      .from("products")
+      .select("id", { count: "exact", head: true });
+    if (error) return 0;
+    return count ?? 0;
   }
 
   function bindProductsEvents() {
@@ -307,29 +380,32 @@ export function createProductsModule(ctx) {
       setRouteHash("products", { sub: "new" });
     });
     document.querySelectorAll("[data-products-filter]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         filterActive = btn.dataset.productsFilter;
         productsPage = 0;
         document.querySelectorAll("[data-products-filter]").forEach((b) => {
           b.classList.toggle("admin-tab-active", b === btn);
         });
-        renderProductsList();
+        await renderProductsList();
       });
     });
     document.getElementById("products-search")?.addEventListener(
       "input",
-      debounce(() => {
+      debounce(async () => {
         productsPage = 0;
-        renderProductsList();
-      })
+        await renderProductsList();
+      }, 300)
     );
-    document.getElementById("products-prev")?.addEventListener("click", () => {
-      productsPage = Math.max(0, productsPage - 1);
-      renderProductsList();
+    document.getElementById("products-prev")?.addEventListener("click", async () => {
+      if (productsPage <= 0) return;
+      productsPage -= 1;
+      await renderProductsList();
     });
-    document.getElementById("products-next")?.addEventListener("click", () => {
+    document.getElementById("products-next")?.addEventListener("click", async () => {
+      const totalPages = Math.max(1, Math.ceil(productsTotalCount / PAGE_SIZE));
+      if (productsPage >= totalPages - 1) return;
       productsPage += 1;
-      renderProductsList();
+      await renderProductsList();
     });
     document.getElementById("product-form")?.addEventListener("submit", saveProduct);
     document.getElementById("pf-image-url")?.addEventListener("input", () => {
@@ -402,6 +478,7 @@ export function createProductsModule(ctx) {
     renderProductsList,
     renderProductForm,
     bindProductsEvents,
-    getFilteredProducts: () => ctx.state.productsCache
+    fetchProductsCount,
+    getFilteredProducts: () => ctx.state.productsPageData || []
   };
 }

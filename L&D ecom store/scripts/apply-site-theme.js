@@ -246,6 +246,79 @@ function applyCopywritingPatches(html, copy) {
   return next;
 }
 
+/** Ordre par défaut des blocs page d'accueil (aligné theme-manifest). */
+const DEFAULT_HOME_SECTION_ORDER = [
+  'hero',
+  'manifesto',
+  'collections',
+  'bestSellers',
+  'instagram',
+  'reviews',
+  'faq',
+  'newsletter',
+];
+
+/**
+ * Réordonne les sections data-editor-section dans #page-home selon site_settings.sections._meta.order.
+ * @param {string} html
+ * @param {string[]} order
+ * @returns {string}
+ */
+function reorderHomeSectionsInHtml(html, order) {
+  if (!Array.isArray(order) || !order.length) return html;
+
+  const homeOpen = html.indexOf('<div id="page-home"');
+  if (homeOpen === -1) return html;
+
+  const homeContentStart = html.indexOf('>', homeOpen) + 1;
+  const catalogMarker = html.indexOf('<div id="page-catalog"', homeContentStart);
+  if (catalogMarker === -1) return html;
+
+  const before = html.slice(0, homeContentStart);
+  const homeInner = html.slice(homeContentStart, catalogMarker);
+  const after = html.slice(catalogMarker);
+
+  const sectionRe = /<section[^>]*data-editor-section="([^"]+)"[^>]*>[\s\S]*?<\/section>/g;
+  const sections = new Map();
+  let match;
+  while ((match = sectionRe.exec(homeInner)) !== null) {
+    sections.set(match[1], match[0]);
+  }
+
+  if (!sections.size) return html;
+
+  const reordered = [];
+  const used = new Set();
+
+  for (const id of order) {
+    if (sections.has(id)) {
+      reordered.push(sections.get(id));
+      used.add(id);
+    }
+  }
+
+  for (const [id, block] of sections) {
+    if (!used.has(id)) reordered.push(block);
+  }
+
+  return `${before}${reordered.join('\n\n  ')}\n\n${after}`;
+}
+
+/**
+ * @param {string} html
+ * @param {Record<string, unknown>|null|undefined} sections
+ * @returns {string}
+ */
+function applyLayoutOrder(html, sections) {
+  if (!sections || typeof sections !== 'object') return html;
+  const meta = sections._meta || sections.layout;
+  const order = meta && typeof meta === 'object' ? meta.order : null;
+  if (!Array.isArray(order) || !order.length) {
+    return reorderHomeSectionsInHtml(html, DEFAULT_HOME_SECTION_ORDER);
+  }
+  return reorderHomeSectionsInHtml(html, order);
+}
+
 /**
  * @returns {Record<string, unknown>|null}
  */
@@ -265,8 +338,9 @@ function loadCopywriting() {
  * @param {string} filePath
  * @param {string|null} css
  * @param {Record<string, unknown>|null} copy
+ * @param {Record<string, unknown>|null|undefined} sections
  */
-function patchHtmlFile(filePath, css, copy) {
+function patchHtmlFile(filePath, css, copy, sections) {
   if (!fs.existsSync(filePath)) {
     console.warn(`apply-site-theme: fichier introuvable — ${filePath}`);
     return;
@@ -291,6 +365,14 @@ function patchHtmlFile(filePath, css, copy) {
     }
   }
 
+  if (sections && filePath.includes(`${path.sep}index${path.sep}index.html`)) {
+    const laidOut = applyLayoutOrder(html, sections);
+    if (laidOut !== html) {
+      html = laidOut;
+      changed = true;
+    }
+  }
+
   if (changed) {
     fs.writeFileSync(filePath, html, 'utf8');
     console.log(`apply-site-theme: patch appliqué → ${path.relative(root, filePath)}`);
@@ -300,12 +382,13 @@ function patchHtmlFile(filePath, css, copy) {
 async function applySiteTheme() {
   const copy = loadCopywriting();
   let css = '';
+  let sections = null;
 
   if (url && key) {
     const sb = createClient(url, key);
     const { data, error } = await sb
       .from('site_settings')
-      .select('theme, is_published')
+      .select('theme, sections, is_published')
       .eq('id', 'published')
       .eq('locale', locale)
       .eq('is_published', true)
@@ -313,6 +396,10 @@ async function applySiteTheme() {
 
     if (error) {
       throw new Error(`Supabase site_settings : ${error.message}`);
+    }
+
+    if (data?.sections && typeof data.sections === 'object') {
+      sections = data.sections;
     }
 
     if (data?.theme && typeof data.theme === 'object' && Object.keys(data.theme).length) {
@@ -329,13 +416,13 @@ async function applySiteTheme() {
     );
   }
 
-  if (!css && !copy) {
+  if (!css && !copy && !sections) {
     console.warn('apply-site-theme: rien à appliquer.');
     return;
   }
 
   for (const filePath of PATCH_TARGETS) {
-    patchHtmlFile(filePath, css, copy);
+    patchHtmlFile(filePath, css, copy, sections);
   }
 
   if (css) {
@@ -343,6 +430,9 @@ async function applySiteTheme() {
   }
   if (copy) {
     console.log('apply-site-theme: copywriting.json appliqué aux pages vitrine.');
+  }
+  if (sections?._meta?.order) {
+    console.log('apply-site-theme: ordre des sections accueil appliqué (sections._meta.order).');
   }
 }
 
@@ -352,6 +442,8 @@ module.exports = {
   injectThemeIntoHead,
   applyCopywritingPatches,
   loadCopywriting,
+  reorderHomeSectionsInHtml,
+  applyLayoutOrder,
 };
 
 if (require.main === module) {

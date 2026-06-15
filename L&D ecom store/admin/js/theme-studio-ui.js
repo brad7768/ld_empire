@@ -29,6 +29,14 @@ export function eyeIconSvg(hidden) {
   return `<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="10" cy="10" r="2"/></svg>`;
 }
 
+/** Flèche épurée pour réordonnancement des sections accueil. */
+export function orderArrowSvg(direction) {
+  if (direction === "up") {
+    return `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3 9 8H3L6 3z"/></svg>`;
+  }
+  return `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9 3 4h6l-3 5z"/></svg>`;
+}
+
 export function getFieldsGrouped(def) {
   if (!def) return [];
   if (def.groups?.length) {

@@ -19,7 +19,7 @@ export function createAnalyticsModule(ctx) {
       el?.classList.add("hidden");
       return;
     }
-    const hasProduct = ctx.state.productsCache.some((p) => p.active);
+    const hasProduct = (ctx.state.activeProductsCount ?? 0) > 0;
     const hasStock = ctx.state.variantsCache.some((v) => (v.inventory?.[0]?.on_hand ?? 0) > 0);
     const hasCms =
       ctx.state.cmsCache?.length > 0 ||
@@ -62,8 +62,14 @@ export function createAnalyticsModule(ctx) {
 
   async function refreshAnalytics() {
     try {
-      if (!ctx.state.productsCache.length) await ctx.refreshProductsTab();
       if (!ctx.state.variantsCache.length) await ctx.refreshStockTab();
+
+      const { count: activeProductCount } = await ctx.sb
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("active", true);
+
+      ctx.state.activeProductsCount = activeProductCount ?? 0;
 
       const ordersRes = await ctx.sb.from("orders").select("id,status,total_cents,created_at").order("created_at", { ascending: false }).limit(4000);
       const orders = ordersRes.data || [];
@@ -75,7 +81,7 @@ export function createAnalyticsModule(ctx) {
       const paid = orders.filter((x) => x.status === "paid");
       const revenue = paid.reduce((s, x) => s + Number(x.total_cents || 0), 0);
       const pending = orders.filter((x) => x.status === "pending").length;
-      const activeProducts = ctx.state.productsCache.filter((p) => p.active).length;
+      const activeProducts = activeProductCount ?? 0;
       const variants = ctx.state.variantsCache.length;
 
       document.getElementById("analytics-kpi").innerHTML = `

@@ -49,6 +49,8 @@ const sb = createClient(cfg.url, cfg.anonKey);
 
 const state = {
   productsCache: [],
+  productsPageData: [],
+  activeProductsCount: 0,
   variantsCache: [],
   ordersCache: [],
   cmsCache: [],

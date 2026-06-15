@@ -10,6 +10,38 @@ export const HOME_SECTION_ORDER = [
   "newsletter"
 ];
 
+/** Pages statiques éditables via cms_content (Section B du menu éditeur). */
+export const STATIC_PAGES = [
+  {
+    id: "returns",
+    label: "Politique de retour & Remboursement",
+    cmsKey: "page.returns",
+    href: "../pages/livraison-retours.html",
+    icon: "text"
+  },
+  {
+    id: "cgv",
+    label: "Conditions Générales de Vente (CGV)",
+    cmsKey: "page.cgv",
+    href: "../pages/conditions-utilisation.html",
+    icon: "text"
+  },
+  {
+    id: "legal",
+    label: "Mentions Légales",
+    cmsKey: "page.legal",
+    href: "../pages/politique-confidentialite.html",
+    icon: "text"
+  },
+  {
+    id: "contact",
+    label: "Contact / À Propos",
+    cmsKey: "page.contact",
+    href: "../pages/contact.html",
+    icon: "mail"
+  }
+];
+
 export const THEME_MANIFEST = {
   pages: {
     home: {
