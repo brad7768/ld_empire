@@ -43,11 +43,44 @@ Si Git demande un login, utilisez l’une de ces options :
 |----------|----------------|
 | `SUPABASE_URL` | `https://liwswmcofxlvlyokkazm.supabase.co` |
 | `SUPABASE_ANON_KEY` | Clé anon du dashboard Supabase |
-| `SITE_URL` | `https://ld-store.netlify.app` |
+| `SITE_URL` | `https://ld-empire.ca` (ou `https://ld-store.netlify.app`) |
 
 Au build, `scripts/netlify-build.js` génère `js/supabase-config.js` depuis ces variables.
 
 > `js/supabase-config.js` n’est **pas** dans Git (`.gitignore`) — c’est voulu.
+
+## Étape E — Supabase : mot de passe oublié (admin)
+
+L’admin envoie un email de réinitialisation via Supabase Auth. Si **Site URL** ou **Redirect URLs** sont mal configurés, le lien dans l’email pointe vers `localhost:3000` (ou une autre URL locale) au lieu de votre site en production → **ERR_CONNECTION_REFUSED**.
+
+### Configuration obligatoire
+
+Supabase Dashboard → **Authentication** → **URL Configuration** :
+
+| Réglage | Valeur |
+|---------|--------|
+| **Site URL** | `https://ld-empire.ca` (domaine public principal) |
+| **Redirect URLs** | `https://ld-empire.ca/admin/reset-password.html` |
+| | `https://ld-store.netlify.app/admin/reset-password.html` |
+| | `http://localhost:8081/admin/reset-password.html` (dev : `npm run dev`) |
+
+> Ne pas laisser **Site URL** sur `http://localhost:3000` sauf si vous développez réellement sur ce port. Ce projet sert en local sur le port **8081**.
+
+### Flux attendu
+
+1. `/admin/forgot-password.html` → saisir l’email admin → **Envoyer le lien**
+2. Email Supabase → lien vers `https://ld-empire.ca/admin/reset-password.html#access_token=…&type=recovery`
+3. Nouveau mot de passe → redirection `/admin/` (connexion)
+
+### Contournement si le lien pointe encore vers localhost
+
+Si l’email contient `localhost:3000/#access_token=…`, remplacez **uniquement** l’origine dans la barre d’adresse :
+
+```
+https://ld-empire.ca/admin/reset-password.html#access_token=…&type=recovery&…
+```
+
+(gardez tout le fragment `#…` inchangé). Le lien expire en ~1 h ; demandez-en un nouveau après avoir corrigé Supabase.
 
 ## Étape D — Vérifier le premier déploiement Git
 
@@ -87,3 +120,6 @@ Secrets Supabase : `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`.
 | Admin : « Supabase config missing » | Ajouter `SUPABASE_URL` + `SUPABASE_ANON_KEY` dans Netlify |
 | 404 sur `/produit/...` | Le build régénère les pages ; vérifier les logs `generate-pages` |
 | Ancien site encore visible | **Deploys** → **Publish deploy** sur le dernier build Git réussi |
+| Email reset → `localhost:3000` | Corriger **Site URL** + **Redirect URLs** dans Supabase (voir Étape E) |
+| Reset : « Lien invalide ou expiré » | Lien expiré (~1 h) ou compte absent de `admin_users` — renvoyer un email |
+| Reset : page blanche / refus connexion | Vérifier que `SUPABASE_URL` + `SUPABASE_ANON_KEY` sont dans Netlify |
