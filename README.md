@@ -78,4 +78,7 @@ supabase functions deploy stripe-webhook
 |----------|------|
 | `npm run build` | Build Netlify local (SEO, sitemap, config Supabase) |
 | `npm run dev` | Build + serveur statique port 8081 |
-| `npm run seed:catalog` | Seed catalogue Supabase |
+| `npm run clear:supabase-media` | Vide images Supabase (produits + hero) |
+| `npm run seed:catalog` | Importe `catalog.json` vers Supabase |
+
+Guide contenu vitrine via Git : **`L&D ecom store/CONTENT-VIA-GIT.md`**.

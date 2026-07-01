@@ -11,9 +11,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const { generateAllPages } = require('./generate-pages');
-
-
-
+const { applyHomeMedia } = require('./apply-home-media');
 const root = path.join(__dirname, '..');
 
 const outPath = path.join(root, 'js', 'supabase-config.js');
@@ -90,8 +88,7 @@ replaceSiteUrl(path.join(root, 'index.html'));
 
 replaceSiteUrl(path.join(root, 'index', 'index.html'));
 
-
-
+applyHomeMedia();
 const { urls, counts } = generateAllPages({ root, siteUrl });
 
 console.log(

@@ -1,0 +1,14 @@
+{
+  "_comment": "Images page d'accueil — source Git. Chemins depuis la racine du site (ex. /assets/home/hero-01.jpg). Appliqué au build via scripts/apply-home-media.js.",
+  "hero": {
+    "images": []
+  },
+  "manifesto": {
+    "image": ""
+  },
+  "collections": {
+    "silhouettes": "",
+    "signatures": "",
+    "finitions": ""
+  }
+}
