@@ -47,7 +47,7 @@ async function main() {
       continue;
     }
 
-    const sku = `SEED-${row.id || row.slug}`;
+    const sku = row.sku || `SEED-${row.id || row.slug}`;
     const { data: variant, error: vErr } = await sb
       .from("product_variants")
       .upsert(

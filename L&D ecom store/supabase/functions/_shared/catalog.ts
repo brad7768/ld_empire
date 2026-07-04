@@ -26,5 +26,6 @@ export const PRODUCT_CATALOG: Record<string, CatalogEntry> = {
   p16: { slug: "mule-bijou-stephan-paris", priceCents: 85000, nameFr: "Mule Bijou Cristal — Stephan Paris", nameEn: "Crystal Bow Mule — Stephan Paris" },
   p17: { slug: "nouveautes-signature-1", priceCents: 12999, nameFr: "Nouveautés Signature I", nameEn: "Signature New Arrivals I" },
   p18: { slug: "nouveautes-signature-2", priceCents: 10999, nameFr: "Nouveautés Signature II", nameEn: "Signature New Arrivals II" },
-  p19: { slug: "nouveautes-signature-3", priceCents: 8999, nameFr: "Nouveautés Signature III", nameEn: "Signature New Arrivals III" }
+  p19: { slug: "nouveautes-signature-3", priceCents: 8999, nameFr: "Nouveautés Signature III", nameEn: "Signature New Arrivals III" },
+  p20: { slug: "sac-a-main-elegance-fuchsia", priceCents: 19900, nameFr: "Sac à Main Élégance Fuchsia", nameEn: "Fuchsia Elegance Handbag" }
 };

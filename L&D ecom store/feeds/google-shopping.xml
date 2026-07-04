@@ -4,5 +4,17 @@
     <title>L&amp;D — Google Shopping</title>
     <link>https://ld-store.netlify.app/</link>
     <description>Flux produits L&amp;D pour Google Merchant Center</description>
+  <item>
+    <g:id>p20</g:id>
+    <g:title>Sac à Main Élégance Fuchsia</g:title>
+    <g:description>Affirmez votre style avec le Sac à Main Élégance Fuchsia, une pièce sophistiquée qui associe harmonieusement des finitions en simili cuir fuchsia et beige à une texture tressée raffinée. Son fermoir doré et sa silhouette structurée apportent une touche de luxe intemporel, idéale pour compléter aussi bien une tenue de journée qu'une tenue de soirée. Doté d'une poignée rigide élégante et d'un intérieur spacieux, ce sac allie praticité et raffinement.</g:description>
+    <g:link>https://ld-store.netlify.app/produit/sac-a-main-elegance-fuchsia/</g:link>
+    <g:image_link>https://ld-store.netlify.app/assets/products/sac-a-main-elegance-fuchsia-1.png</g:image_link>
+    <g:price>199.00 CAD</g:price>
+    <g:availability>in_stock</g:availability>
+    <g:brand>L&amp;D</g:brand>
+    <g:condition>new</g:condition>
+    <g:google_product_category>Apparel &amp; Accessories &gt; Handbags, Wallets &amp; Cases &gt; Handbags</g:google_product_category>
+  </item>
   </channel>
 </rss>
