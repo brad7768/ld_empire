@@ -82,3 +82,5 @@ supabase functions deploy stripe-webhook
 | `npm run seed:catalog` | Importe `catalog.json` vers Supabase |
 
 Guide contenu vitrine via Git : **`L&D ecom store/CONTENT-VIA-GIT.md`**.
+
+Documentation d'architecture (Task 1) : **`docs/`**.
