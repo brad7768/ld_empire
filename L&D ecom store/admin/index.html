@@ -424,6 +424,10 @@
                     <label for="pf-name" class="block text-[11px] font-medium text-stone-500">Nom du produit</label>
                     <input id="pf-name" required class="admin-input" autocomplete="off">
                   </div>
+                  <div class="space-y-3 mt-3" data-field-wrap>
+                    <label for="pf-name-en" class="block text-[11px] font-medium text-stone-500">Nom (EN)</label>
+                    <input id="pf-name-en" class="admin-input" autocomplete="off">
+                  </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                     <div data-field-wrap>
                       <label for="pf-price" class="block text-[11px] font-medium text-stone-500 mb-1">Prix (CAD)</label>
@@ -437,6 +441,10 @@
                   <div class="space-y-3 mt-3" data-field-wrap>
                     <label for="pf-description" class="block text-[11px] font-medium text-stone-500">Description personnalisée</label>
                     <textarea id="pf-description" class="admin-input min-h-[100px]"></textarea>
+                  </div>
+                  <div class="space-y-3 mt-3" data-field-wrap>
+                    <label for="pf-short-description" class="block text-[11px] font-medium text-stone-500">Description courte</label>
+                    <textarea id="pf-short-description" class="admin-input min-h-[72px]"></textarea>
                   </div>
                 </div>
                 <div class="admin-card p-5">
@@ -478,6 +486,20 @@
                   <label class="flex items-center gap-2 text-[13px] cursor-pointer">
                     <input id="pf-active" type="checkbox" checked class="rounded border-stone-300"> Produit actif
                   </label>
+                  <div class="grid grid-cols-1 gap-2 mt-3 text-[13px]">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input id="pf-featured" type="checkbox" class="rounded border-stone-300"> Produit mis en avant
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input id="pf-is-new" type="checkbox" class="rounded border-stone-300"> Nouveauté
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input id="pf-best-seller" type="checkbox" class="rounded border-stone-300"> Best seller
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input id="pf-last-chance" type="checkbox" class="rounded border-stone-300"> Dernière chance
+                    </label>
+                  </div>
                 </div>
                 <div class="admin-card p-5 space-y-3">
                   <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wide">Organisation</p>
@@ -485,17 +507,28 @@
                     <label for="pf-category" class="block text-[11px] font-medium text-stone-500 mb-1">Catégorie (pilier)</label>
                     <select id="pf-category" required class="admin-input-select w-full bg-white">
                       <option value="">Sélectionner…</option>
-                      <option value="Les Silhouettes">Les Silhouettes</option>
-                      <option value="Les Signatures Olfactives">Les Signatures Olfactives</option>
-                      <option value="Les Finitions">Les Finitions</option>
-                      <option value="Prêt-à-porter">Prêt-à-porter</option>
-                      <option value="Parfums">Parfums</option>
-                      <option value="Accessoires">Accessoires</option>
+                      <option value="ready-to-wear">Prêt-à-porter</option>
+                      <option value="footwear">Chaussures</option>
+                      <option value="leather-goods">Maroquinerie</option>
+                      <option value="accessories">Accessoires</option>
+                      <option value="parfums">Parfums</option>
                     </select>
+                  </div>
+                  <div data-field-wrap>
+                    <label for="pf-collection" class="block text-[11px] font-medium text-stone-500 mb-1">Collection (clé)</label>
+                    <input id="pf-collection" class="admin-input" placeholder="ex: pret-a-porter / parfums">
                   </div>
                   <div data-field-wrap>
                     <label for="pf-slug" class="block text-[11px] font-medium text-stone-500 mb-1">Slug URL</label>
                     <input id="pf-slug" class="admin-input" autocomplete="off">
+                  </div>
+                  <div data-field-wrap>
+                    <label for="pf-seo-title" class="block text-[11px] font-medium text-stone-500 mb-1">SEO title</label>
+                    <input id="pf-seo-title" class="admin-input" autocomplete="off">
+                  </div>
+                  <div data-field-wrap>
+                    <label for="pf-seo-description" class="block text-[11px] font-medium text-stone-500 mb-1">SEO description</label>
+                    <textarea id="pf-seo-description" class="admin-input min-h-[72px]"></textarea>
                   </div>
                 </div>
                 <button type="submit" id="product-form-submit" class="admin-btn-primary w-full">Ajouter le produit</button>

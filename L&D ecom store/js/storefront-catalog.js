@@ -50,7 +50,7 @@
       id: row.slug,
       dbId: row.id,
       slug: row.slug,
-      name: { fr: row.name, en: row.name },
+      name: { fr: row.name, en: row.name_en || row.name },
       category: row.category,
       price: minPriceCents / 100,
       images,
@@ -59,13 +59,15 @@
         : [{ name: DEFAULT_COLOR, hex: "#1C1917" }],
       sizes: sizes.size ? [...sizes] : DEFAULT_SIZES,
       description: {
-        fr: row.description || "",
-        en: row.description || "",
+        fr: row.description || row.short_description || "",
+        en: row.description || row.short_description || "",
       },
       materials: { fr: "", en: "" },
       stock,
-      bestseller: false,
-      lastChance: false,
+      featured: !!row.featured,
+      isNew: !!row.is_new,
+      bestseller: !!row.best_seller,
+      lastChance: !!row.last_chance,
       _variants: variants.map((v) => ({
         id: v.id,
         sku: v.sku,
@@ -110,7 +112,8 @@
       .from("products")
       .select(
         `
-        id, slug, name, description, category, image_urls,
+        id, slug, name, name_en, short_description, description,
+        category, collection, featured, is_new, best_seller, last_chance, image_urls,
         product_variants (
           id, sku, color, size, price_cents, active,
           inventory ( on_hand )
@@ -140,6 +143,7 @@
   }
 
   async function loadCatalog(sb) {
+    const isDevHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
     if (sb) {
       try {
         const dbProducts = await fetchFromSupabase(sb);
@@ -150,8 +154,12 @@
         console.warn("[L&D] Supabase catalog:", e);
       }
     }
+    if (!isDevHost) {
+      console.warn("[L&D] catalog fallback disabled outside local dev.");
+      return { products: [], source: "supabase-empty" };
+    }
     const fallback = await fetchFallbackCatalog();
-    return { products: fallback, source: "fallback" };
+    return { products: fallback, source: "fallback-dev" };
   }
 
   function resolveVariant(product, size, color) {

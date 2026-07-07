@@ -88,26 +88,21 @@ replaceSiteUrl(path.join(root, 'index.html'));
 
 replaceSiteUrl(path.join(root, 'index', 'index.html'));
 
-applyHomeMedia();
-const { urls, counts } = generateAllPages({ root, siteUrl });
+async function main() {
+  applyHomeMedia();
+  const { urls, counts } = await generateAllPages({ root, siteUrl });
 
-console.log(
+  console.log(
+    `netlify-build: ${counts.products} fiches produit, ${counts.collections} collections, ${counts.static} page statique générée.`
+  );
 
-  `netlify-build: ${counts.products} fiches produit, ${counts.collections} collections, ${counts.static} page statique générée.`
-
-);
-
-
-
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 ${urls
-
-  .map(
-
-    (u) => `  <url>
+    .map(
+      (u) => `  <url>
 
     <loc>${u.loc}</loc>
 
@@ -116,18 +111,14 @@ ${urls
     <priority>${u.priority ?? 0.5}</priority>
 
   </url>`
-
-  )
-
-  .join('\n')}
+    )
+    .join('\n')}
 
 </urlset>
 
 `;
 
-
-
-const robots = `User-agent: *
+  const robots = `User-agent: *
 
 Allow: /
 
@@ -141,21 +132,23 @@ Sitemap: ${siteUrl}/sitemap.xml
 
 `;
 
+  fs.writeFileSync(path.join(root, 'sitemap.xml'), sitemap, 'utf8');
+  fs.writeFileSync(path.join(root, 'robots.txt'), robots, 'utf8');
 
+  console.log(`netlify-build: sitemap.xml (${urls.length} URLs) et robots.txt générés pour ${siteUrl}.`);
+  console.log('netlify-build: feeds/google-shopping.xml et feeds/meta-catalog.csv générés.');
 
-fs.writeFileSync(path.join(root, 'sitemap.xml'), sitemap, 'utf8');
-
-fs.writeFileSync(path.join(root, 'robots.txt'), robots, 'utf8');
-
-console.log(`netlify-build: sitemap.xml (${urls.length} URLs) et robots.txt générés pour ${siteUrl}.`);
-
-console.log('netlify-build: feeds/google-shopping.xml et feeds/meta-catalog.csv générés.');
-
-const themeResult = spawnSync(process.execPath, [path.join(__dirname, 'apply-site-theme.js')], {
-  stdio: 'inherit',
-  env: process.env,
-});
-if (themeResult.status !== 0 && themeResult.status != null) {
-  console.warn('netlify-build: apply-site-theme a échoué (build poursuivi).');
+  const themeResult = spawnSync(process.execPath, [path.join(__dirname, 'apply-site-theme.js')], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  if (themeResult.status !== 0 && themeResult.status != null) {
+    console.warn('netlify-build: apply-site-theme a échoué (build poursuivi).');
+  }
 }
+
+main().catch((err) => {
+  console.error('netlify-build:', err?.message || err);
+  process.exit(1);
+});
 

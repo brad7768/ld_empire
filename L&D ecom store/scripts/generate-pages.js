@@ -81,6 +81,13 @@ function formatPriceCents(cents) {
   return (cents / 100).toFixed(2);
 }
 
+function resolveImageUrl(image, siteUrl) {
+  if (!image) return '';
+  if (/^https?:\/\//i.test(image)) return image;
+  const normalized = image.startsWith('/') ? image : `/${image}`;
+  return `${siteUrl}${normalized}`;
+}
+
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
@@ -91,11 +98,11 @@ function writePage(filePath, html) {
 }
 
 function isParfum(product) {
-  return product.slug.startsWith('parfum-');
+  return product.collection === 'parfums' || product.category === 'parfums' || product.slug.startsWith('parfum-');
 }
 
 function isNouveaute(product) {
-  return product.slug.startsWith('nouveautes-');
+  return Boolean(product.isNew) || product.slug.startsWith('nouveautes-');
 }
 
 function productsForCollection(collection, products) {
@@ -207,8 +214,9 @@ function pageShell({ title, description, canonical, ogType, jsonLd, body, siteUr
 
 function productCard(product, siteUrl) {
   const url = `${siteUrl}/produit/${product.slug}/`;
+  const imageUrl = resolveImageUrl(product.image, siteUrl);
   const media = product.image
-    ? `<img src="${escapeHtml(`${siteUrl}${product.image}`)}" alt="${escapeHtml(product.nameFr)}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" width="400" height="500">`
+    ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.nameFr)}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" width="400" height="500">`
     : `<span class="block h-full w-full bg-cream-200" aria-hidden="true"></span>`;
   return `
     <article class="group">
@@ -223,7 +231,7 @@ function productCard(product, siteUrl) {
 
 function renderProductPage(product, siteUrl) {
   const canonical = `${siteUrl}/produit/${product.slug}/`;
-  const imageUrl = product.image ? `${siteUrl}${product.image}` : '';
+  const imageUrl = resolveImageUrl(product.image, siteUrl);
   const priceStr = formatPrice(product.price);
 
   const jsonLd = {
@@ -268,8 +276,8 @@ function renderProductPage(product, siteUrl) {
     </div>`;
 
   return pageShell({
-    title: `${product.nameFr} — L&D`,
-    description: product.descriptionFr.slice(0, 155),
+    title: product.seoTitle || `${product.nameFr} — L&D`,
+    description: (product.seoDescription || product.descriptionFr || '').slice(0, 155),
     canonical,
     ogType: 'product',
     jsonLd,
@@ -340,7 +348,7 @@ function renderGoogleShoppingFeed(products, siteUrl) {
     .filter((p) => p.image)
     .map((p) => {
       const link = `${siteUrl}/produit/${p.slug}/`;
-      const image = `${siteUrl}${p.image}`;
+      const image = resolveImageUrl(p.image, siteUrl);
       return `  <item>
     <g:id>${escapeHtml(p.id)}</g:id>
     <g:title>${escapeHtml(p.nameFr)}</g:title>
@@ -384,7 +392,7 @@ function renderMetaCatalogFeed(products, siteUrl) {
       'new',
       `${formatPriceCents(p.priceCents)} CAD`,
       `${siteUrl}/produit/${p.slug}/`,
-      `${siteUrl}${p.image}`,
+      resolveImageUrl(p.image, siteUrl),
       'L&D',
     ]
       .map(csvEscape)
@@ -410,15 +418,94 @@ ${entries}
 </urlset>`;
 }
 
-/**
- * @param {{ root: string, siteUrl: string }} opts
- * @returns {{ urls: Array<{loc:string,priority?:number,changefreq?:string}>, counts: Record<string,number> }}
- */
-function generateAllPages(opts) {
-  const { root, siteUrl } = opts;
+function safeOnHand(inv) {
+  if (Array.isArray(inv)) return Number(inv[0]?.on_hand ?? 0);
+  if (inv && typeof inv === 'object') return Number(inv.on_hand ?? 0);
+  return 0;
+}
+
+function mapDbProduct(row) {
+  const variants = (row.product_variants || []).filter((v) => v.active !== false);
+  const minPriceCents = variants.length ? Math.min(...variants.map((v) => Number(v.price_cents || 0))) : 0;
+  const hasStock = variants.some((v) => safeOnHand(v.inventory) > 0);
+  const firstImage = Array.isArray(row.image_urls) ? String(row.image_urls[0] || '') : '';
+  const image = firstImage ? (firstImage.startsWith('/') || /^https?:\/\//i.test(firstImage) ? firstImage : `/${firstImage}`) : '';
+  return {
+    id: row.id,
+    slug: row.slug,
+    nameFr: row.name,
+    nameEn: row.name_en || row.name,
+    descriptionFr: row.description || row.short_description || '',
+    descriptionEn: row.description || row.short_description || '',
+    category: row.category || '',
+    collection: row.collection || '',
+    priceCents: minPriceCents,
+    price: minPriceCents / 100,
+    image,
+    inStock: hasStock,
+    bestseller: !!row.best_seller,
+    isNew: !!row.is_new,
+    lastChance: !!row.last_chance,
+    seoTitle: row.seo_title || '',
+    seoDescription: row.seo_description || '',
+    googleProductCategory: 'Apparel & Accessories',
+  };
+}
+
+async function loadProductsFromSupabase() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const { createClient } = await import('@supabase/supabase-js');
+  const sb = createClient(supabaseUrl, serviceKey);
+  const { data, error } = await sb
+    .from('products')
+    .select(`
+      id, slug, name, name_en, short_description, description,
+      featured, is_new, best_seller, last_chance,
+      seo_title, seo_description,
+      active, category, collection, image_urls,
+      product_variants (
+        id, price_cents, active,
+        inventory ( on_hand )
+      )
+    `)
+    .eq('active', true)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(`Supabase catalog query failed: ${error.message}`);
+  return (data || []).map(mapDbProduct);
+}
+
+function loadProductsFromCatalogJson(root) {
   const catalogPath = path.join(root, 'data', 'catalog.json');
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
-  const products = catalog.products;
+  return catalog.products || [];
+}
+
+/**
+ * @param {{ root: string, siteUrl: string }} opts
+ * @returns {Promise<{ urls: Array<{loc:string,priority?:number,changefreq?:string}>, counts: Record<string,number>, products: unknown[] }>}
+ */
+async function generateAllPages(opts) {
+  const { root, siteUrl } = opts;
+  let products = [];
+  let source = 'catalog.json';
+
+  try {
+    const dbProducts = await loadProductsFromSupabase();
+    if (dbProducts && dbProducts.length) {
+      products = dbProducts;
+      source = 'supabase';
+    }
+  } catch (err) {
+    console.warn(`generate-pages: Supabase unavailable, fallback catalog.json (${err.message || err})`);
+  }
+
+  if (!products.length) {
+    products = loadProductsFromCatalogJson(root);
+  }
 
   const counts = { products: 0, collections: 0, static: 0 };
 
@@ -476,6 +563,7 @@ function generateAllPages(opts) {
     urls.push({ loc: `${siteUrl}/collection/${c.slug}/`, priority: 0.8, changefreq: 'weekly' });
   });
 
+  console.log(`generate-pages: source=${source}, products=${products.length}`);
   return { urls, counts, products };
 }
 

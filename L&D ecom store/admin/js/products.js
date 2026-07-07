@@ -30,7 +30,7 @@ export function createProductsModule(ctx) {
 
   function buildProductsQuery() {
     const q = (document.getElementById("products-search")?.value || "").trim();
-    let query = ctx.sb.from("products").select("id,name,slug,category,description,active,image_urls", {
+    let query = ctx.sb.from("products").select("id,name,name_en,slug,category,collection,description,short_description,active,featured,is_new,best_seller,last_chance,seo_title,seo_description,image_urls", {
       count: "exact"
     });
 
@@ -217,7 +217,7 @@ export function createProductsModule(ctx) {
 
     const { data, error } = await ctx.sb
       .from("products")
-      .select("id,name,slug,category,description,active,image_urls")
+      .select("id,name,name_en,slug,category,collection,description,short_description,active,featured,is_new,best_seller,last_chance,seo_title,seo_description,image_urls")
       .eq("id", productId)
       .maybeSingle();
 
@@ -232,11 +232,20 @@ export function createProductsModule(ctx) {
     const isNew = !p;
     document.getElementById("pf-id").value = p?.id || "";
     document.getElementById("pf-name").value = p?.name || "";
+    document.getElementById("pf-name-en").value = p?.name_en || "";
     document.getElementById("pf-slug").value = p?.slug || "";
     const catEl = document.getElementById("pf-category");
     if (catEl) catEl.value = p?.category || "";
+    document.getElementById("pf-collection").value = p?.collection || "";
     document.getElementById("pf-description").value = p?.description || "";
+    document.getElementById("pf-short-description").value = p?.short_description || "";
+    document.getElementById("pf-seo-title").value = p?.seo_title || "";
+    document.getElementById("pf-seo-description").value = p?.seo_description || "";
     document.getElementById("pf-active").checked = p ? !!p.active : true;
+    document.getElementById("pf-featured").checked = p ? !!p.featured : false;
+    document.getElementById("pf-is-new").checked = p ? !!p.is_new : false;
+    document.getElementById("pf-best-seller").checked = p ? !!p.best_seller : false;
+    document.getElementById("pf-last-chance").checked = p ? !!p.last_chance : false;
     const imgs = normalizeProductImageUrls(p?.image_urls);
     document.getElementById("pf-image-url").value = imgs[0] || "";
     document.getElementById("pf-image-urls").value = imgs.slice(1).join("\n");
@@ -305,14 +314,48 @@ export function createProductsModule(ctx) {
     });
   }
 
+  async function upsertDefaultVariant(productId, slug, priceCad, stock) {
+    if (!Number.isFinite(priceCad) || priceCad < 0) return;
+    const priceCents = Math.round(priceCad * 100);
+    let existing = ctx.state.variantsCache.find((v) => v.product_id === productId);
+    if (!existing) {
+      const sku = `${slug.toUpperCase()}-STD`;
+      const { data, error } = await ctx.sb
+        .from("product_variants")
+        .insert({
+          product_id: productId,
+          sku,
+          size: "Unique",
+          color: "Standard",
+          price_cents: priceCents,
+          active: true
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      existing = { id: data.id };
+      await ctx.sb.from("inventory").upsert({ variant_id: data.id, on_hand: Math.max(0, Number(stock) || 0) });
+      return;
+    }
+
+    await ctx.sb
+      .from("product_variants")
+      .update({ price_cents: priceCents, updated_at: new Date().toISOString() })
+      .eq("id", existing.id);
+    await ctx.sb
+      .from("inventory")
+      .upsert({ variant_id: existing.id, on_hand: Math.max(0, Number(stock) || 0), updated_at: new Date().toISOString() });
+  }
+
   async function saveProduct(e) {
     e.preventDefault();
     const id = document.getElementById("pf-id").value;
-    if (!id) return;
     const name = document.getElementById("pf-name").value.trim();
+    const nameEn = document.getElementById("pf-name-en").value.trim();
     let slug = document.getElementById("pf-slug").value.trim();
     const category = document.getElementById("pf-category").value.trim();
     const priceCad = Number(document.getElementById("pf-price")?.value);
+    const stock = Number(document.getElementById("pf-stock")?.value || 0);
     if (!name || !category) {
       toast("Nom et catégorie requis", "error");
       return;
@@ -332,23 +375,46 @@ export function createProductsModule(ctx) {
     const image_urls = [...new Set([primaryUrl, ...urlsRaw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean)].filter(Boolean))];
     const payload = {
       name,
+      name_en: nameEn || name,
       slug,
       category,
+      collection: document.getElementById("pf-collection").value.trim() || null,
       description: document.getElementById("pf-description").value.trim(),
+      short_description: document.getElementById("pf-short-description").value.trim() || null,
       image_urls,
       active: document.getElementById("pf-active").checked,
+      featured: document.getElementById("pf-featured").checked,
+      is_new: document.getElementById("pf-is-new").checked,
+      best_seller: document.getElementById("pf-best-seller").checked,
+      last_chance: document.getElementById("pf-last-chance").checked,
+      seo_title: document.getElementById("pf-seo-title").value.trim() || null,
+      seo_description: document.getElementById("pf-seo-description").value.trim() || null,
       updated_at: new Date().toISOString()
     };
     const saveBtn = document.getElementById("sticky-save");
     setButtonLoading(saveBtn, true);
     try {
-      const { error } = await ctx.sb.from("products").update(payload).eq("id", id);
-      if (error) throw error;
+      let productId = id;
+      if (!id) {
+        const ins = await ctx.sb
+          .from("products")
+          .insert({ ...payload, created_at: new Date().toISOString() })
+          .select("id")
+          .single();
+        if (ins.error) throw ins.error;
+        productId = ins.data.id;
+      } else {
+        const { error } = await ctx.sb.from("products").update(payload).eq("id", id);
+        if (error) throw error;
+      }
+
+      await upsertDefaultVariant(productId, slug, priceCad, stock);
       toast("Produit enregistré", "success");
       ctx.state.productFormDirty = false;
-      setRouteHash("products", { sub: "edit", id });
+      setRouteHash("products", { sub: "edit", id: productId });
       await ctx.refreshProductsTab();
       setStickyBar({ visible: true, dirty: false, ...productFormSaveHandlers(), saveLabel: "Enregistrer" });
+      await ctx.refreshStockTab();
       await ctx.refreshAnalytics();
     } catch (err) {
       toast(err.message || "Erreur", "error");
@@ -435,8 +501,14 @@ export function createProductsModule(ctx) {
       ctx.state.productFormDirty = true;
       setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });
     });
-    ["pf-description", "pf-category", "pf-image-urls", "pf-price", "pf-stock"].forEach((id) => {
+    ["pf-name-en", "pf-description", "pf-short-description", "pf-category", "pf-collection", "pf-image-urls", "pf-price", "pf-stock", "pf-seo-title", "pf-seo-description"].forEach((id) => {
       document.getElementById(id)?.addEventListener("input", () => {
+        ctx.state.productFormDirty = true;
+        setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });
+      });
+    });
+    ["pf-active", "pf-featured", "pf-is-new", "pf-best-seller", "pf-last-chance"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("change", () => {
         ctx.state.productFormDirty = true;
         setStickyBar({ visible: true, dirty: true, ...productFormSaveHandlers() });
       });
