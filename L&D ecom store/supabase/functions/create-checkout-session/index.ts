@@ -64,6 +64,10 @@ type ValidatedLine = {
   sku: string;
 };
 
+function isValidPriceCents(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 0;
+}
+
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -249,6 +253,9 @@ Deno.serve(async (req) => {
       if (!variant || !variant.active || !productRow?.active) {
         return jsonResponse({ error: `Variant unavailable (${row.variantId}).` }, 400);
       }
+      if (!isValidPriceCents(variant.price_cents)) {
+        return jsonResponse({ error: `Variant price is invalid (${row.variantId}).` }, 400);
+      }
       const onHand = safeOnHand(variant.inventory);
       if (onHand < qty) {
         return jsonResponse({ error: `Insufficient stock for ${variant.sku || variant.id}.` }, 400);
@@ -283,6 +290,9 @@ Deno.serve(async (req) => {
       variants[0];
 
     if (!variant) return jsonResponse({ error: `No active variant for ${slug}.` }, 400);
+    if (!isValidPriceCents(variant.price_cents)) {
+      return jsonResponse({ error: `Variant price is invalid for ${slug}.` }, 400);
+    }
 
     const onHand = safeOnHand(variant.inventory);
     if (onHand < qty) {

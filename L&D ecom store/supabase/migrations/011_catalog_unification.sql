@@ -28,6 +28,11 @@ alter table public.product_variants
 alter table public.product_variants
   add column if not exists price_cents integer;
 
+-- Legacy safety: ensure existing null values are normalized before NOT NULL.
+update public.product_variants
+set price_cents = 0
+where price_cents is null;
+
 alter table public.product_variants
   alter column price_cents set not null;
 

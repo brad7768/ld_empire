@@ -360,6 +360,10 @@ export function createProductsModule(ctx) {
       toast("Nom et catégorie requis", "error");
       return;
     }
+    if (!id && (!Number.isFinite(priceCad) || priceCad < 0)) {
+      toast("Prix requis pour créer un produit", "error");
+      return;
+    }
     if (!slug) slug = slugify(name);
     const { data: dup } = await ctx.sb
       .from("products")
@@ -409,6 +413,9 @@ export function createProductsModule(ctx) {
       }
 
       await upsertDefaultVariant(productId, slug, priceCad, stock);
+      if (!id && (!Number.isFinite(priceCad) || priceCad <= 0)) {
+        toast("Produit créé, mais vérifiez le prix de la variante.", "error");
+      }
       toast("Produit enregistré", "success");
       ctx.state.productFormDirty = false;
       setRouteHash("products", { sub: "edit", id: productId });
