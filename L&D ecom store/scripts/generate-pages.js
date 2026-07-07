@@ -269,7 +269,7 @@ function renderProductPage(product, siteUrl) {
 
   return pageShell({
     title: `${product.nameFr} — L&D`,
-    description: product.descriptionFr.slice(0, 155),
+    description: (product.metaDescription || product.descriptionFr).slice(0, 155),
     canonical,
     ogType: 'product',
     jsonLd,

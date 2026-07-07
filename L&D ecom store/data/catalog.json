@@ -287,6 +287,24 @@
       "bestseller": false,
       "lastChance": false,
       "googleProductCategory": "Apparel & Accessories > Jewelry"
+    },
+    {
+      "id": "p20",
+      "slug": "sac-a-main-elegance-fuchsia",
+      "sku": "SAC-ELE-FUC-001",
+      "nameFr": "Sac à Main Élégance Fuchsia",
+      "nameEn": "Fuchsia Elegance Handbag",
+      "descriptionFr": "Affirmez votre style avec le Sac à Main Élégance Fuchsia, une pièce sophistiquée qui associe harmonieusement des finitions en simili cuir fuchsia et beige à une texture tressée raffinée. Son fermoir doré et sa silhouette structurée apportent une touche de luxe intemporel, idéale pour compléter aussi bien une tenue de journée qu'une tenue de soirée. Doté d'une poignée rigide élégante et d'un intérieur spacieux, ce sac allie praticité et raffinement.",
+      "descriptionEn": "Make a statement with the Fuchsia Elegance Handbag — a sophisticated piece pairing fuchsia and beige faux-leather finishes with refined woven texture. Its gold clasp and structured silhouette add timeless luxury, perfect for day or evening. A rigid top handle and spacious interior combine practicality with refinement.",
+      "metaDescription": "Découvrez le Sac à Main Élégance Fuchsia, un modèle raffiné aux finitions fuchsia et beige, parfait pour apporter une touche chic et moderne à toutes vos tenues.",
+      "category": "leather-goods",
+      "priceCents": 19900,
+      "price": 199,
+      "image": "/assets/products/sac-a-main-elegance-fuchsia-1.png",
+      "inStock": true,
+      "bestseller": true,
+      "lastChance": false,
+      "googleProductCategory": "Apparel & Accessories > Handbags, Wallets & Cases > Handbags"
     }
   ]
 }
