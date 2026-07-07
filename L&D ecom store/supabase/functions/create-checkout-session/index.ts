@@ -39,13 +39,14 @@ type InventoryRow = { on_hand?: number | null };
 
 type VariantRow = {
   id: string;
+  product_id?: string;
   sku: string | null;
   size: string | null;
   color: string | null;
   price_cents: number;
   active: boolean;
-  products: ProductRow | ProductRow[] | null;
-  inventory: InventoryRow | InventoryRow[] | null;
+  products?: ProductRow | ProductRow[] | null;
+  inventory?: InventoryRow | InventoryRow[] | null;
 };
 
 type ProductWithVariants = ProductRow & {
@@ -168,34 +169,31 @@ function stripeLineItems(
 async function fetchVariantById(supabase: ReturnType<typeof createClient>, variantId: string) {
   const { data, error } = await supabase
     .from("product_variants")
-    .select(`
-      id, sku, size, color, price_cents, active,
-      products ( id, slug, name, name_en, active ),
-      inventory ( on_hand )
-    `)
+    .select("id, product_id, sku, size, color, price_cents, active")
     .eq("id", variantId)
     .maybeSingle();
 
-  if (error) throw error;
-  return data as VariantRow | null;
+  return { data: data as VariantRow | null, error };
 }
 
-async function fetchProductWithVariantsBySlug(supabase: ReturnType<typeof createClient>, slug: string) {
+async function fetchProductBySlug(supabase: ReturnType<typeof createClient>, slug: string) {
   const { data, error } = await supabase
     .from("products")
-    .select(`
-      id, slug, name, name_en, active,
-      product_variants (
-        id, sku, size, color, price_cents, active,
-        inventory ( on_hand )
-      )
-    `)
+    .select("id, slug, name, name_en, active")
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
 
-  if (error) throw error;
-  return data as ProductWithVariants | null;
+  return { data: data as ProductRow | null, error };
+}
+
+async function fetchInventoryByVariantIds(supabase: ReturnType<typeof createClient>, variantIds: string[]) {
+  if (!variantIds.length) return { data: [] as Array<{ variant_id: string; on_hand: number }>, error: null };
+  const { data, error } = await supabase
+    .from("inventory")
+    .select("variant_id, on_hand")
+    .in("variant_id", variantIds);
+  return { data: (data || []) as Array<{ variant_id: string; on_hand: number }>, error };
 }
 
 Deno.serve(async (req) => {
@@ -248,15 +246,35 @@ Deno.serve(async (req) => {
     const requestedSize = String(row.size ?? "");
 
     if (row.variantId) {
-      const variant = await fetchVariantById(supabase, row.variantId);
-      const productRow = toProductRow(variant?.products);
+      const { data: variant, error: variantErr } = await fetchVariantById(supabase, row.variantId);
+      if (variantErr) {
+        console.error("[checkout] variant lookup:", variantErr);
+        return jsonResponse({ error: "Variant lookup failed." }, 400);
+      }
+      const { data: productRow, error: productErr } = await supabase
+        .from("products")
+        .select("id, slug, name, name_en, active")
+        .eq("id", variant?.product_id || "")
+        .maybeSingle();
+      if (productErr) {
+        console.error("[checkout] product lookup by variant:", productErr);
+        return jsonResponse({ error: "Product lookup failed." }, 400);
+      }
+      const { data: invRows, error: invErr } = await fetchInventoryByVariantIds(
+        supabase,
+        variant?.id ? [variant.id] : [],
+      );
+      if (invErr) {
+        console.error("[checkout] inventory lookup:", invErr);
+        return jsonResponse({ error: "Inventory lookup failed." }, 400);
+      }
+      const onHand = Number(invRows?.[0]?.on_hand ?? 0);
       if (!variant || !variant.active || !productRow?.active) {
         return jsonResponse({ error: `Variant unavailable (${row.variantId}).` }, 400);
       }
       if (!isValidPriceCents(variant.price_cents)) {
         return jsonResponse({ error: `Variant price is invalid (${row.variantId}).` }, 400);
       }
-      const onHand = safeOnHand(variant.inventory);
       if (onHand < qty) {
         return jsonResponse({ error: `Insufficient stock for ${variant.sku || variant.id}.` }, 400);
       }
@@ -278,10 +296,33 @@ Deno.serve(async (req) => {
     const slug = typeof row.productId === "string" ? row.productId.trim() : "";
     if (!slug) return jsonResponse({ error: "Missing product identifier." }, 400);
 
-    const product = await fetchProductWithVariantsBySlug(supabase, slug);
+    const { data: product, error: productErr } = await fetchProductBySlug(supabase, slug);
+    if (productErr) {
+      console.error("[checkout] product lookup:", productErr);
+      return jsonResponse({ error: "Product lookup failed." }, 400);
+    }
     if (!product?.active) return jsonResponse({ error: `Unknown product (${slug}).` }, 400);
 
-    const variants = (product.product_variants || []).filter((v) => v.active !== false);
+    const { data: variantsData, error: variantsErr } = await supabase
+      .from("product_variants")
+      .select("id, sku, size, color, price_cents, active")
+      .eq("product_id", product.id)
+      .eq("active", true)
+      .order("created_at", { ascending: true });
+    if (variantsErr) {
+      console.error("[checkout] variants lookup:", variantsErr);
+      return jsonResponse({ error: "Variant lookup failed." }, 400);
+    }
+    const variants = (variantsData || []) as VariantRow[];
+    const { data: invRows, error: invErr } = await fetchInventoryByVariantIds(
+      supabase,
+      variants.map((v) => v.id),
+    );
+    if (invErr) {
+      console.error("[checkout] inventory lookup:", invErr);
+      return jsonResponse({ error: "Inventory lookup failed." }, 400);
+    }
+    const onHandByVariant = new Map((invRows || []).map((r) => [r.variant_id, Number(r.on_hand || 0)]));
     const preferredSize = requestedSize || "Unique";
     const preferredColor = requestedColor || "Standard";
     const variant =
@@ -294,7 +335,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `Variant price is invalid for ${slug}.` }, 400);
     }
 
-    const onHand = safeOnHand(variant.inventory);
+    const onHand = Number(onHandByVariant.get(variant.id) ?? 0);
     if (onHand < qty) {
       return jsonResponse({ error: `Insufficient stock for ${variant.sku || variant.id}.` }, 400);
     }
